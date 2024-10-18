@@ -1,0 +1,11 @@
+import { createApp } from "vue";
+import "./assets/index.css";
+import "nprogress/nprogress.css";
+import App from "./App.vue";
+import { createPinia } from "pinia";
+import router from "./router";
+const recordManager = createApp(App);
+const store = createPinia();
+recordManager.use(router);
+recordManager.use(store);
+recordManager.mount("#app");
