@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 
-import { Gender, Level, Options, Semester } from "@/type";
+import { Level, Options, Semester } from "@/type";
 import { Button } from "@/components";
 import { useRouter } from "vue-router";
 import RenderIf from "@/components/shared/RenderIf.vue";
@@ -115,17 +115,6 @@ const courses = reactive<Course[]>([
 ]);
 
 // methods
-const generateYears = () => {
-  const currentYear = new Date().getFullYear();
-  const startYear = 1981;
-  const yearsArray = [];
-
-  for (let year = startYear; year < currentYear + 1; year++) {
-    yearsArray.push(`${year}/${year + 1}`);
-  }
-  return yearsArray;
-};
-
 const editField = <K extends keyof Course>(index: number, field: K) => {
   currentlyEditedOperator.value = { index, field };
   editedValue.value = courses[index][field];
@@ -135,7 +124,6 @@ const saveItem = <K extends keyof Course>(index: number, field: K) => {
     courses[index][field] = editedValue.value as Course[typeof field];
   }
 };
-const years = ref(generateYears());
 </script>
 
 <template>
