@@ -49,7 +49,7 @@ const isEditPasword = ref(false);
               <label
                 for="last-name"
                 class="block text-sm font-medium leading-6 text-gray-900"
-                >Last name</label
+                >Last Name</label
               >
               <div class="mt-2">
                 <input
@@ -67,7 +67,7 @@ const isEditPasword = ref(false);
               <label
                 for="email"
                 class="block text-sm font-medium leading-6 text-gray-900"
-                >Email address</label
+                >Email Address</label
               >
               <div class="mt-2">
                 <input

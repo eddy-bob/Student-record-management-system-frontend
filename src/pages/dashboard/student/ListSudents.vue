@@ -147,7 +147,11 @@ const years = ref(generateYears());
             class="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <Button
-            :onclick="() => router.push(`/student-profile/${studentRegNumber}`)"
+            :onclick="
+              () =>
+                studentRegNumber &&
+                router.push(`/student-profile/${studentRegNumber}`)
+            "
             title="Search"
             class="ml-2 bg-indigo-700 text-white rounded-lg px-4 py-2 hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
@@ -468,7 +472,7 @@ const years = ref(generateYears());
                       router.push(`/student-profile/${data.regNumber}`);
                     }
                   "
-                  class="font-medium text-indigo-800 dark:text-blue-500 hover:underline"
+                  class="font-medium text-indigo-800 dark:text-blue-500"
                 />
               </td>
             </tr>
