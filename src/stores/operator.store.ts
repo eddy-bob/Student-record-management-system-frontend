@@ -8,6 +8,7 @@ import { reactive, ref } from "vue";
 import operatorService from "@/services/operator/operator.service";
 import { useRoute, useRouter } from "vue-router";
 import { saveLocalStorage } from "@/helpers/localStorage";
+import { notify } from "@kyvg/vue3-notification";
 
 export const useOperatorStore = defineStore("operator", () => {
   const route = useRoute();
@@ -36,6 +37,11 @@ export const useOperatorStore = defineStore("operator", () => {
       }
       router.replace("/analytics");
     } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Authentication Error",
+        text: error.message || " could not login operator",
+      });
       throw new Error(error.message || " could not login operator");
     } finally {
       isLoading.value = false;
@@ -53,6 +59,11 @@ export const useOperatorStore = defineStore("operator", () => {
 
       return operator;
     } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Fetch Error",
+        text: error.message || " could not fetch profile",
+      });
       throw new Error(error.message || " could not fetch profile");
     } finally {
       isLoading.value = false;
@@ -65,8 +76,18 @@ export const useOperatorStore = defineStore("operator", () => {
 
       const operator = await operatorService.updateSelfOperator(data);
       operatorProfile = { ...operatorProfile, ...data };
+      notify({
+        type: "success",
+        title: "Profile Update Success",
+        text: "Profile updated successfully",
+      });
       return operator;
     } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Update Error",
+        text: error.message || " could not update profile",
+      });
       throw new Error(error.message || " could not update self");
     } finally {
       isLoading.value = false;

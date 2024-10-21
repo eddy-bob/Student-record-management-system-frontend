@@ -2,6 +2,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import studentService from "@/services/student/student.service";
+import { notify } from "@kyvg/vue3-notification";
 
 export const useStudentStore = defineStore("student", () => {
   const isLoading = ref(false);
@@ -23,6 +24,11 @@ export const useStudentStore = defineStore("student", () => {
         return students;
       }
     } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Fetch Error",
+        text: error.message || " could not fetch students",
+      });
       throw new Error(error.message || " could not fetch students");
     } finally {
       isLoading.value = false;

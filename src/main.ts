@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import "./assets/index.css";
+import Notifications from "@kyvg/vue3-notification";
 import "nprogress/nprogress.css";
 import App from "./App.vue";
 import { createPinia } from "pinia";
@@ -8,4 +9,5 @@ const recordManager = createApp(App);
 const store = createPinia();
 recordManager.use(router);
 recordManager.use(store);
+recordManager.use(Notifications);
 recordManager.mount("#app");

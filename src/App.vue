@@ -23,6 +23,7 @@ provide("app:layout", layout);
 
 <template>
   <div class="">
+    <notifications />
     <component :is="layout || 'div'">
       <router-view />
     </component>
