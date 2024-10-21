@@ -1,6 +1,24 @@
 <script setup lang="ts">
+import { reactive } from "vue";
 import { Button } from "@/components";
 import { Gender, Options } from "@/type";
+import { useStudentStore } from "@/stores/student.store";
+import { AddStudent } from "@/services/student/student.type";
+
+const studentStore = useStudentStore();
+const studentData = reactive<AddStudent>({
+  regNumber: "",
+  firstName: "",
+  lastName: "",
+  middleName: "",
+  admissionSet: "",
+  option: Options.TELECOM,
+  gender: Gender.MALE,
+});
+
+const createStudent = async () => {
+  await studentStore.addStudent([studentData]);
+};
 </script>
 
 <template>
@@ -11,16 +29,17 @@ import { Gender, Options } from "@/type";
     >
       Register new student
     </p>
-    <form v-on:submit.prevent="() => {}" class="max-w-sm mx-auto">
+    <form v-on:submit.prevent="createStudent" class="max-w-sm mx-auto">
       <div class="grid grid-cols-2 gap-4">
         <div class="mb-5">
           <label
             for="first-name"
             class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >User first name</label
+            >User first name*</label
           >
           <input
             type="text"
+            v-model="studentData.firstName"
             id="first-name"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             placeholder="user first name here"
@@ -31,11 +50,12 @@ import { Gender, Options } from "@/type";
           <label
             for="middle-name"
             class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >User middle name</label
+            >User middle name*</label
           >
           <input
             type="text"
             id="middle-name"
+            v-model="studentData.middleName"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             placeholder="User middle name here"
           />
@@ -49,21 +69,38 @@ import { Gender, Options } from "@/type";
         >
         <input
           type="text"
+          v-model="studentData.lastName"
           id="last-name"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           placeholder="User last name here"
           required
         />
       </div>
-
+      <div class="mb-5">
+        <label
+          for="reg-number"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >User Reg/Mat Number*</label
+        >
+        <input
+          type="text"
+          v-model="studentData.regNumber"
+          id="reg-number"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          placeholder="E.G IMSU/2019/1430"
+          required
+        />
+      </div>
       <div class="mb-5">
         <label
           for="option"
           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          >Select option</label
+          >Select option*</label
         >
         <select
+          v-model="studentData.option"
           id="option"
+          required
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
         >
           <option value="" disabled selected>Select an option...</option>
@@ -77,12 +114,13 @@ import { Gender, Options } from "@/type";
       </div>
       <div class="mb-5">
         <label
-          for="countries"
+          for="gender"
           class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          >Select gender</label
+          >Select gender*</label
         >
 
         <select
+          v-model="studentData.gender"
           id="gender"
           required
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
@@ -96,6 +134,7 @@ import { Gender, Options } from "@/type";
 
       <div class="flex w-full">
         <Button
+          :loading="studentStore.isLoading"
           type="submit"
           class="text-white mb-2 bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm w-full px-5 py-2.5 text-center"
         />

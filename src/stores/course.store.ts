@@ -18,7 +18,7 @@ export const useCourseStore = defineStore("course", () => {
           return;
         }
         page.value += 1;
-        const queryString = `page=${page.value}&${query}`;
+        const queryString = `page=${page.value}${query}`;
         const students = await courseService.findManyCourses(queryString);
         totalPage.value = students.totalPage;
         return students;

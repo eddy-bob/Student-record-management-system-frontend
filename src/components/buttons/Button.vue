@@ -22,7 +22,7 @@ const props = withDefaults(
 <template>
   <button
     :disabled="loading"
-    class="hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+    class="hover:bg-gray-100 flex justify-center text-gray-800 font-semibold text-center align-middle py-2 px-4 border border-gray-400 rounded shadow"
     :class="class"
     :type="type"
     :onclick="onClick"
@@ -30,11 +30,9 @@ const props = withDefaults(
   >
     <svg
       v-if="loading == true"
-      class="animate-spin h-5 w-5 mr-3 ..."
+      class="animate-spin h-5 w-5 mr-3 bg-white ..."
       viewBox="0 0 24 24"
-    >
-      <!-- ... -->
-    </svg>
-    {{ props.title }}
+    ></svg>
+    <span> {{ props.title }}</span>
   </button>
 </template>

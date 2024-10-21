@@ -18,7 +18,7 @@ export const useResultStore = defineStore("result", () => {
           return;
         }
         page.value += 1;
-        const queryString = `page=${page.value}&${query}`;
+        const queryString = `page=${page.value}${query}`;
         const students = await resultService.findManyResults(queryString);
         totalPage.value = students.totalPage;
         return students;

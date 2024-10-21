@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { defineEmits } from "vue";
+import { useOperatorStore } from "@/stores/operator.store";
+
+const operatorStore = useOperatorStore();
 const toggleDropdown = (id: string) => {
   const dropdown = document.getElementById(id);
   dropdown?.classList.contains("hidden")
     ? dropdown.classList.replace("hidden", "block")
     : dropdown?.classList.replace("block", "hidden");
 };
+const emit = defineEmits(["openLogoutModal"]);
 </script>
 <template>
   <nav
@@ -54,7 +59,7 @@ const toggleDropdown = (id: string) => {
             />
             <span
               class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white"
-              >Admin</span
+              >{{ operatorStore.operatorProfile.role }}</span
             >
           </a>
         </div>
@@ -70,7 +75,8 @@ const toggleDropdown = (id: string) => {
               src="/images/user-icon.jpeg"
               alt="user photo"
             />
-            Admin name
+            {{ operatorStore.operatorProfile.firstName || "Admin" }}
+            {{ operatorStore.operatorProfile.lastName || "Name" }}
             <svg
               class="w-2.5 h-2.5 ms-3"
               aria-hidden="true"
@@ -94,8 +100,14 @@ const toggleDropdown = (id: string) => {
             class="z-10 hidden absolute top-16 right-5 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
           >
             <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-              <div class="font-medium">Super Admin</div>
-              <div class="truncate">hod@eeeimsu.com</div>
+              <div class="font-medium">
+                {{ operatorStore.operatorProfile.role || "Operator Role" }}
+              </div>
+              <div class="truncate">
+                {{
+                  operatorStore.operatorProfile.email || "operator@gmail.com"
+                }}
+              </div>
             </div>
             <ul
               class="py-2 text-sm text-gray-700 dark:text-gray-200"
@@ -109,12 +121,12 @@ const toggleDropdown = (id: string) => {
                 >
               </li>
             </ul>
-            <div class="py-2">
-              <a
-                href="#"
+            <div @click="emit('openLogoutModal')" class="py-2 cursor-pointer">
+              <p
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                >Sign out</a
               >
+                Sign out
+              </p>
             </div>
           </div>
         </div>

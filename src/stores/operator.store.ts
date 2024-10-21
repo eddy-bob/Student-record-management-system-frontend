@@ -1,4 +1,5 @@
 import {
+  AddOperator,
   OperatorData,
   Signin,
   UpdateOperator,
@@ -30,7 +31,7 @@ export const useOperatorStore = defineStore("operator", () => {
       const signinData = await operatorService.signin(data);
       saveLocalStorage(
         signinData.data.accessToken,
-        process.env.VITE_AUTH_TKE as string
+        import.meta.env.VITE_AUTH_TKE as string
       );
       if (route.query.next) {
         router.replace(route.query.next as string);
@@ -40,13 +41,89 @@ export const useOperatorStore = defineStore("operator", () => {
       notify({
         type: "error",
         title: "Authentication Error",
-        text: error.message || " could not login operator",
+        text: error.message || "Could not login operator",
       });
-      throw new Error(error.message || " could not login operator");
+      throw new Error(error.message || "Could not login operator");
     } finally {
       isLoading.value = false;
     }
   };
+  const fetchOperator = async (id: string) => {
+    try {
+      isLoading.value = true;
+
+      const operator = await operatorService.findOperator(id);
+
+      return operator;
+    } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Fetch Error",
+        text: error.message || " could not fetch operator",
+      });
+      throw new Error(error.message || " could not fetch operator");
+    } finally {
+      isLoading.value = false;
+    }
+  };
+  const createOperator = async (data: AddOperator) => {
+    try {
+      isLoading.value = true;
+      const operator = await operatorService.createOperator(data);
+      notify({
+        type: "success",
+        title: "Add Success",
+        text: "Operator successfully added",
+      });
+      return operator;
+    } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Add Error",
+        text: error.message || " could not create operator",
+      });
+      throw new Error(error.message || " could not create operator");
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  const findManyOperators = async (query: string) => {
+    try {
+      isLoading.value = true;
+      return await operatorService.findManyOperators(query);
+    } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Fetch Error",
+        text: error.message || " could not fetch operators",
+      });
+      throw new Error(error.message || " could not fetch operators");
+    } finally {
+      isLoading.value = false;
+    }
+  };
+  const deleteOperator = async (id: string) => {
+    try {
+      isLoading.value = true;
+      await operatorService.deleteOperator(id);
+      notify({
+        type: "success",
+        title: "Delete Success",
+        text: "Operator deleted successfully",
+      });
+    } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Delete Error",
+        text: error.message || " could not delete operator",
+      });
+      throw new Error(error.message || " could not delete operator");
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   const fetchProfile = async () => {
     try {
       isLoading.value = true;
@@ -102,5 +179,9 @@ export const useOperatorStore = defineStore("operator", () => {
     route,
     router,
     login,
+    createOperator,
+    fetchOperator,
+    deleteOperator,
+    findManyOperators,
   };
 });

@@ -2,6 +2,7 @@ export enum Options {
   POWER = "Power",
   TELECOM = "Telecomunication",
   ELECTRONICS = "Electronics",
+  NONE = "Not Applicable",
   GENERAL = "General",
 }
 export enum Semester {
@@ -16,9 +17,9 @@ export enum Level {
   FIFTH = "500 level",
 }
 export enum Role {
-  Super = "super_admin",
-  Exco = "deparment_exco",
-  Admin = "admin",
+  Super = "Super_admin",
+  Exco = "Deparment_exco",
+  Admin = "Admin",
 }
 export enum Gender {
   MALE = "Male",

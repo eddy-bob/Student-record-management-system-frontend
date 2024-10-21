@@ -5,7 +5,7 @@ import axios, {
 } from "axios";
 import { getLocalStorage } from "../helpers/localStorage";
 
-export const baseURL = `${process.env.VITE_SERVER_URL}/v1`;
+export const baseURL = `${import.meta.env.VITE_SERVER_URL}/v1`;
 
 const axiosInstance = axios.create({
   baseURL,

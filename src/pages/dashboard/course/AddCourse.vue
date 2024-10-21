@@ -72,7 +72,7 @@ import { Semester, Options, Level } from "@/type";
         >
           <option value="" disabled selected>Select an option...</option>
           <option v-for="(option, i) in Options" :key="i">
-            <span>{{ option }}</span>
+            {{ option }}
           </option>
         </select>
       </div>
@@ -90,7 +90,7 @@ import { Semester, Options, Level } from "@/type";
         >
           <option value="" disabled selected>Select semester...</option>
           <option v-for="(semester, i) in Semester" :key="i">
-            <span>{{ semester }}</span>
+            {{ semester }}
           </option>
         </select>
       </div>
@@ -109,7 +109,7 @@ import { Semester, Options, Level } from "@/type";
         >
           <option value="" disabled selected>Select level...</option>
           <option v-for="(level, i) in Level" :key="i">
-            <span>{{ level }}</span>
+            {{ level }}
           </option>
         </select>
       </div>

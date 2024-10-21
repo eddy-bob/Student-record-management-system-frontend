@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import Button from "@/components/buttons/Button.vue";
+import { Signin } from "@/services/operator/operator.type";
+import { reactive } from "vue";
+import { useOperatorStore } from "@/stores/operator.store";
+
+const operatorStore = useOperatorStore();
+const signInData = reactive<Signin>({ email: "", password: "" });
+
+const signIn = async () => {
+  await operatorStore.login(signInData);
+};
+</script>
 <template>
   <div class="flex flex-col justify-center">
     <div class="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -9,7 +22,7 @@
     </div>
 
     <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-      <form class="space-y-6" @submit.prevent="">
+      <form class="space-y-6" @submit.prevent="signIn">
         <div>
           <label
             for="email"
@@ -18,6 +31,7 @@
           >
           <div class="mt-2">
             <input
+              v-model="signInData.email"
               id="email"
               name="email"
               type="email"
@@ -45,6 +59,7 @@
           </div>
           <div class="mt-2">
             <input
+              v-model="signInData.password"
               id="password"
               name="password"
               type="password"
@@ -58,6 +73,7 @@
         <div>
           <Button
             title="Sign in"
+            :loading="operatorStore.isLoading"
             type="submit"
             class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           />
@@ -66,6 +82,3 @@
     </div>
   </div>
 </template>
-<script setup lang="ts">
-import Button from "@/components/buttons/Button.vue";
-</script>

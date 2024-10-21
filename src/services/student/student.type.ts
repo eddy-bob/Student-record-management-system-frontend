@@ -6,11 +6,11 @@ export interface AddStudent {
 
   lastName: string;
 
-  middleName: string;
+  middleName?: string;
 
   admissionSet: string;
 
-  option: Options;
+  option?: Options;
 
   gender: Gender;
 }

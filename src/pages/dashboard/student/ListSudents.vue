@@ -6,10 +6,14 @@ import { Gender, Options } from "@/type";
 import { Button } from "@/components";
 import { useRouter } from "vue-router";
 import RenderIf from "@/components/shared/RenderIf.vue";
+import { useStudentStore } from "@/stores/student.store";
+import EmptyState from "@/components/shared/EmptyState.vue";
 
 const router = useRouter();
+const studentStore = useStudentStore();
 
 const editedValue = ref("");
+const query = reactive({ session: "", option: "" });
 const studentRegNumber = ref("");
 let currentlyEditedOperator = ref<{ field: string; index: number }>({
   field: "",
@@ -17,78 +21,81 @@ let currentlyEditedOperator = ref<{ field: string; index: number }>({
 });
 interface Student {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  middleName: string;
   option: Options;
   gender: Gender;
   session: string;
   regNumber: string;
 }
-const students = reactive<Student[]>([
-  {
-    id: "1",
-    name: "Charlse Akwuoha",
-    option: Options.ELECTRONICS,
-    gender: Gender.MALE,
-    session: "2019/2020",
-    regNumber: "imsu/2019/1503",
-  },
-  {
-    id: "2",
-    name: "Charlse Akwuoha",
-    option: Options.ELECTRONICS,
-    gender: Gender.MALE,
-    session: "2019/2020",
-    regNumber: "imsu/2019/1503",
-  },
-  {
-    id: "2",
-    name: "Charlse Akwuoha",
-    option: Options.ELECTRONICS,
-    session: "2019/2020",
-    gender: Gender.MALE,
-    regNumber: "imsu/2019/1503",
-  },
-  {
-    id: "3",
-    name: "Charlse Akwuoha",
-    option: Options.ELECTRONICS,
-    gender: Gender.MALE,
-    session: "2019/2020",
-    regNumber: "imsu/2019/1503",
-  },
-  {
-    id: "4",
-    name: "Charlse Akwuoha",
-    option: Options.ELECTRONICS,
-    gender: Gender.MALE,
-    session: "2019/2020",
-    regNumber: "imsu/2019/1503",
-  },
-  {
-    id: "5",
-    name: "Charlse Akwuoha",
-    option: Options.ELECTRONICS,
-    gender: Gender.MALE,
-    session: "2019/2020",
-    regNumber: "imsu/2019/1503",
-  },
-  {
-    id: "6",
-    name: "Charlse Akwuoha",
-    option: Options.ELECTRONICS,
-    gender: Gender.MALE,
-    session: "2019/2020",
-    regNumber: "imsu/2019/1503",
-  },
-  {
-    id: "7",
-    name: "Charlse Akwuoha",
-    option: Options.ELECTRONICS,
-    gender: Gender.MALE,
-    session: "2019/2020",
-    regNumber: "imsu/2019/1503",
-  },
-]);
+let students = reactive<Student[]>([]);
+// let students = reactive<Student[]>([
+//   {
+//     id: "1",
+//     name: "Charlse Akwuoha",
+//     option: Options.ELECTRONICS,
+//     gender: Gender.MALE,
+//     session: "2019/2020",
+//     regNumber: "imsu/2019/1503",
+//   },
+//   {
+//     id: "2",
+//     name: "Charlse Akwuoha",
+//     option: Options.ELECTRONICS,
+//     gender: Gender.MALE,
+//     session: "2019/2020",
+//     regNumber: "imsu/2019/1503",
+//   },
+//   {
+//     id: "2",
+//     name: "Charlse Akwuoha",
+//     option: Options.ELECTRONICS,
+//     session: "2019/2020",
+//     gender: Gender.MALE,
+//     regNumber: "imsu/2019/1503",
+//   },
+//   {
+//     id: "3",
+//     name: "Charlse Akwuoha",
+//     option: Options.ELECTRONICS,
+//     gender: Gender.MALE,
+//     session: "2019/2020",
+//     regNumber: "imsu/2019/1503",
+//   },
+//   {
+//     id: "4",
+//     name: "Charlse Akwuoha",
+//     option: Options.ELECTRONICS,
+//     gender: Gender.MALE,
+//     session: "2019/2020",
+//     regNumber: "imsu/2019/1503",
+//   },
+//   {
+//     id: "5",
+//     name: "Charlse Akwuoha",
+//     option: Options.ELECTRONICS,
+//     gender: Gender.MALE,
+//     session: "2019/2020",
+//     regNumber: "imsu/2019/1503",
+//   },
+//   {
+//     id: "6",
+//     name: "Charlse Akwuoha",
+//     option: Options.ELECTRONICS,
+//     gender: Gender.MALE,
+//     session: "2019/2020",
+//     regNumber: "imsu/2019/1503",
+//   },
+//   {
+//     id: "7",
+//     name: "Charlse Akwuoha",
+//     option: Options.ELECTRONICS,
+//     gender: Gender.MALE,
+//     session: "2019/2020",
+//     regNumber: "imsu/2019/1503",
+//   },
+// ]);
 
 const studentType = ref<"Single" | "Multiple">();
 // methods
@@ -110,9 +117,23 @@ const editField = <K extends keyof Student>(index: number, field: K) => {
 const saveItem = <K extends keyof Student>(index: number, field: K) => {
   if (editedValue.value.trim()) {
     students[index][field] = editedValue.value as Student[typeof field];
+    updateStudent(students[index].id, { [field]: editedValue.value });
   }
 };
-const fetchStudents = () => {};
+const fetchStudents = async () => {
+  let queryString = "";
+  if (query.option !== "") {
+    queryString + `&option=${query.option}`;
+  }
+  if (query.session !== "") {
+    queryString + `&admissionSet=${query.session}`;
+  }
+  const studentsData = await studentStore.fetchStudent(queryString);
+  students = studentsData;
+};
+const updateStudent = async (id: string, data: any) => {
+  await studentStore.updateStudent(data, id);
+};
 const years = ref(generateYears());
 
 onMounted(() => {
@@ -124,7 +145,10 @@ onUnmounted(() => {
 });
 
 const handleScroll = () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1) {
+  if (
+    window.innerHeight + window.scrollY >= document.body.offsetHeight - 1 &&
+    students[0]
+  ) {
     fetchStudents();
   }
 };
@@ -167,7 +191,7 @@ fetchStudents();
             :onclick="
               () =>
                 studentRegNumber &&
-                router.push(`/student-profile/${studentRegNumber}`)
+                router.push(`/student-profile/'${studentRegNumber}'`)
             "
             title="Search"
             class="ml-2 bg-indigo-700 text-white rounded-lg px-4 py-2 hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -208,6 +232,8 @@ fetchStudents();
                   />
                 </svg>
                 <select
+                  @change="fetchStudents"
+                  v-model="query.session"
                   id="session"
                   class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
                 >
@@ -250,6 +276,8 @@ fetchStudents();
                   />
                 </svg>
                 <select
+                  @change="fetchStudents"
+                  v-model="query.option"
                   id="option"
                   class="h-12 border border-gray-3 text-sm text-gray-900 pl-11 font-medium leading-7 rounded-xl block w-full py-2.5 px-2 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
                 >
@@ -292,209 +320,281 @@ fetchStudents();
             </svg>
           </div>
         </section>
-        <table
-          class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
-        >
-          <thead
-            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+        <RenderIf :condition="studentStore.isLoading">
+          <Spinner />
+        </RenderIf>
+        <RenderIf :condition="studentStore.isLoading == false && !students[0]">
+          <component :is="EmptyState" />
+        </RenderIf>
+        <RenderIf :condition="studentStore.isLoading == false && !!students[0]">
+          <table
+            class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
           >
-            <tr>
-              <th scope="col" class="px-6 py-3">Name</th>
-              <th scope="col" class="px-6 py-3">Option</th>
-              <th scope="col" class="px-6 py-3">Gender</th>
-              <th scope="col" class="px-6 py-3">Admission year</th>
-              <th scope="col" class="px-6 py-3">Reg/Mat number</th>
-              <th scope="col" class="px-6 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
-              v-for="(data, i) in students"
-              :key="data.id"
+            <thead
+              class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
             >
-              <th
-                scope="row"
-                class="px-6 py-4 cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white"
+              <tr>
+                <th scope="col" class="px-6 py-3">First Name</th>
+                <th scope="col" class="px-6 py-3">Last Name</th>
+                <th scope="col" class="px-6 py-3">Midle Name</th>
+                <th scope="col" class="px-6 py-3">Option</th>
+                <th scope="col" class="px-6 py-3">Gender</th>
+                <th scope="col" class="px-6 py-3">Admission year</th>
+                <th scope="col" class="px-6 py-3">Reg/Mat number</th>
+                <th scope="col" class="px-6 py-3">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
+                v-for="(data, i) in students"
+                :key="data.id"
               >
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index == i &&
-                    currentlyEditedOperator.field === 'name'
-                  "
+                <th
+                  scope="row"
+                  class="px-6 py-4 cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white"
                 >
-                  <input
-                    v-model="editedValue"
-                    @blur="saveItem(i, 'name')"
-                    @keyup.enter="saveItem(i, 'name')"
-                    class="bg-grey-400"
-                  />
-                </RenderIf>
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index !== i ||
-                    currentlyEditedOperator.field !== 'name'
-                  "
-                >
-                  {{ data.name
-                  }}<i
-                    class="fa-solid fa-pencil"
-                    @click="editField(i, 'name')"
-                  ></i>
-                </RenderIf>
-              </th>
-
-              <td class="px-6 py-4 cursor-pointer text-gray-900 font-medium">
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index == i &&
-                    currentlyEditedOperator.field === 'option'
-                  "
-                >
-                  <select
-                    v-model="editedValue"
-                    @blur="saveItem(i, 'option')"
-                    @keyup.enter="saveItem(i, 'option')"
-                    id="editOption"
-                    class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index == i &&
+                      currentlyEditedOperator.field === 'firstName'
+                    "
                   >
-                    <option
-                      v-for="(option, i) in Object.values(Options).slice(0, -1)"
-                      :key="i"
-                      :value="option"
+                    <input
+                      v-model="editedValue"
+                      @blur="saveItem(i, 'firstName')"
+                      @keyup.enter="saveItem(i, 'firstName')"
+                      class="bg-grey-400"
+                    />
+                  </RenderIf>
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index !== i ||
+                      currentlyEditedOperator.field !== 'firstName'
+                    "
+                  >
+                    {{ data.firstName
+                    }}<i
+                      class="fa-solid fa-pencil"
+                      @click="editField(i, 'firstName')"
+                    ></i>
+                  </RenderIf>
+                </th>
+                <th
+                  scope="row"
+                  class="px-6 py-4 cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                >
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index == i &&
+                      currentlyEditedOperator.field === 'lastName'
+                    "
+                  >
+                    <input
+                      v-model="editedValue"
+                      @blur="saveItem(i, 'lastName')"
+                      @keyup.enter="saveItem(i, 'lastName')"
+                      class="bg-grey-400"
+                    />
+                  </RenderIf>
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index !== i ||
+                      currentlyEditedOperator.field !== 'lastName'
+                    "
+                  >
+                    {{ data.lastName
+                    }}<i
+                      class="fa-solid fa-pencil"
+                      @click="editField(i, 'lastName')"
+                    ></i>
+                  </RenderIf>
+                </th>
+                <th
+                  scope="row"
+                  class="px-6 py-4 cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                >
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index == i &&
+                      currentlyEditedOperator.field === 'middleName'
+                    "
+                  >
+                    <input
+                      v-model="editedValue"
+                      @blur="saveItem(i, 'middleName')"
+                      @keyup.enter="saveItem(i, 'middleName')"
+                      class="bg-grey-400"
+                    />
+                  </RenderIf>
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index !== i ||
+                      currentlyEditedOperator.field !== 'middleName'
+                    "
+                  >
+                    {{ data.middleName
+                    }}<i
+                      class="fa-solid fa-pencil"
+                      @click="editField(i, 'middleName')"
+                    ></i>
+                  </RenderIf>
+                </th>
+                <td class="px-6 py-4 cursor-pointer text-gray-900 font-medium">
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index == i &&
+                      currentlyEditedOperator.field === 'option'
+                    "
+                  >
+                    <select
+                      v-model="editedValue"
+                      @blur="saveItem(i, 'option')"
+                      @keyup.enter="saveItem(i, 'option')"
+                      id="editOption"
+                      class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
                     >
-                      {{ option }}
-                    </option>
-                  </select>
-                </RenderIf>
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index !== i ||
-                    currentlyEditedOperator.field !== 'option'
-                  "
-                >
-                  {{ data.option }}
-                  <i
-                    class="fa-solid fa-pencil"
-                    @click="editField(i, 'option')"
-                  ></i>
-                </RenderIf>
-              </td>
-              <td class="px-6 py-4 cursor-pointer font-medium text-gray-900">
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index == i &&
-                    currentlyEditedOperator.field === 'gender'
-                  "
-                >
-                  <select
-                    v-model="editedValue"
-                    @blur="saveItem(i, 'gender')"
-                    @keyup.enter="saveItem(i, 'gender')"
-                    id="edit-gender"
-                    class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
+                      <option
+                        v-for="(option, i) in Object.values(Options).slice(
+                          0,
+                          -1
+                        )"
+                        :key="i"
+                        :value="option"
+                      >
+                        {{ option }}
+                      </option>
+                    </select>
+                  </RenderIf>
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index !== i ||
+                      currentlyEditedOperator.field !== 'option'
+                    "
                   >
-                    <option selected>Sort by session</option>
-                    <option
-                      v-for="gender in Gender"
-                      :key="gender"
-                      :value="gender"
+                    {{ data.option }}
+                    <i
+                      class="fa-solid fa-pencil"
+                      @click="editField(i, 'option')"
+                    ></i>
+                  </RenderIf>
+                </td>
+                <td class="px-6 py-4 cursor-pointer font-medium text-gray-900">
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index == i &&
+                      currentlyEditedOperator.field === 'gender'
+                    "
+                  >
+                    <select
+                      v-model="editedValue"
+                      @blur="saveItem(i, 'gender')"
+                      @keyup.enter="saveItem(i, 'gender')"
+                      id="edit-gender"
+                      class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
                     >
-                      {{ gender }}
-                    </option>
-                  </select>
-                </RenderIf>
+                      <option selected>Sort by session</option>
+                      <option
+                        v-for="gender in Gender"
+                        :key="gender"
+                        :value="gender"
+                      >
+                        {{ gender }}
+                      </option>
+                    </select>
+                  </RenderIf>
 
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index !== i ||
-                    currentlyEditedOperator.field !== 'gender'
-                  "
-                >
-                  {{ data.gender }}
-                  <i
-                    class="fa-solid fa-pencil"
-                    @click="editField(i, 'gender')"
-                  ></i>
-                </RenderIf>
-              </td>
-              <td class="px-6 py-4 cursor-pointer font-medium text-gray-900">
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index == i &&
-                    currentlyEditedOperator.field === 'session'
-                  "
-                >
-                  <select
-                    v-model="editedValue"
-                    @blur="saveItem(i, 'session')"
-                    @keyup.enter="saveItem(i, 'session')"
-                    id="edit-session"
-                    class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index !== i ||
+                      currentlyEditedOperator.field !== 'gender'
+                    "
                   >
-                    <option selected>Sort by session</option>
-                    <option v-for="year in years" :key="year" :value="year">
-                      {{ year }}
-                    </option>
-                  </select>
-                </RenderIf>
+                    {{ data.gender }}
+                    <i
+                      class="fa-solid fa-pencil"
+                      @click="editField(i, 'gender')"
+                    ></i>
+                  </RenderIf>
+                </td>
+                <td class="px-6 py-4 cursor-pointer font-medium text-gray-900">
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index == i &&
+                      currentlyEditedOperator.field === 'session'
+                    "
+                  >
+                    <select
+                      v-model="editedValue"
+                      @blur="saveItem(i, 'session')"
+                      @keyup.enter="saveItem(i, 'session')"
+                      id="edit-session"
+                      class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
+                    >
+                      <option selected>Sort by session</option>
+                      <option v-for="year in years" :key="year" :value="year">
+                        {{ year }}
+                      </option>
+                    </select>
+                  </RenderIf>
 
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index !== i ||
-                    currentlyEditedOperator.field !== 'session'
-                  "
-                >
-                  {{ data.session }}
-                  <i
-                    class="fa-solid fa-pencil"
-                    @click="editField(i, 'session')"
-                  ></i>
-                </RenderIf>
-              </td>
-              <td class="px-6 py-4 cursor-pointer font-medium text-gray-900">
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index == i &&
-                    currentlyEditedOperator.field === 'regNumber'
-                  "
-                >
-                  <input
-                    v-model="editedValue"
-                    class="bg-grey-400"
-                    @blur="saveItem(i, 'regNumber')"
-                    @keyup.enter="saveItem(i, 'regNumber')"
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index !== i ||
+                      currentlyEditedOperator.field !== 'session'
+                    "
+                  >
+                    {{ data.session }}
+                    <i
+                      class="fa-solid fa-pencil"
+                      @click="editField(i, 'session')"
+                    ></i>
+                  </RenderIf>
+                </td>
+                <td class="px-6 py-4 cursor-pointer font-medium text-gray-900">
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index == i &&
+                      currentlyEditedOperator.field === 'regNumber'
+                    "
+                  >
+                    <input
+                      v-model="editedValue"
+                      class="bg-grey-400"
+                      @blur="saveItem(i, 'regNumber')"
+                      @keyup.enter="saveItem(i, 'regNumber')"
+                    />
+                  </RenderIf>
+
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index !== i ||
+                      currentlyEditedOperator.field !== 'regNumber'
+                    "
+                  >
+                    {{ data.regNumber }}
+                    <i
+                      class="fa-solid fa-pencil"
+                      @click="editField(i, 'regNumber')"
+                    ></i>
+                  </RenderIf>
+                </td>
+                <td class="px-6 py-4">
+                  <Button
+                    title="View"
+                    type="button"
+                    :onClick="
+                      () => {
+                        router.push(`/student-profile/${data.regNumber}`);
+                      }
+                    "
+                    class="font-medium text-indigo-800 dark:text-blue-500"
                   />
-                </RenderIf>
-
-                <RenderIf
-                  :condition="
-                    currentlyEditedOperator.index !== i ||
-                    currentlyEditedOperator.field !== 'regNumber'
-                  "
-                >
-                  {{ data.regNumber }}
-                  <i
-                    class="fa-solid fa-pencil"
-                    @click="editField(i, 'regNumber')"
-                  ></i>
-                </RenderIf>
-              </td>
-              <td class="px-6 py-4">
-                <Button
-                  title="View"
-                  type="button"
-                  :onClick="
-                    () => {
-                      router.push(`/student-profile/${data.regNumber}`);
-                    }
-                  "
-                  class="font-medium text-indigo-800 dark:text-blue-500"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </RenderIf>
       </div>
     </RenderIf>
   </div>
