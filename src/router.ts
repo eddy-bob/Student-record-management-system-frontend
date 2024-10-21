@@ -202,11 +202,9 @@ const router: Router = createRouter({
 //navigation guard
 router.beforeEach(async (to) => {
   // initialize store
-  const store = stores.useAuthStore();
+  const store = stores.useOperatorStore();
   if (!store.isAuthenticated && to.name !== "Signin" && to.meta.requireAuth) {
-    to.query.next
-      ? router.replace(`/login?next=${to.query.next}`)
-      : router.replace(`/login`);
+    router.replace(`/login?next=${to.fullPath}`);
   }
 });
 

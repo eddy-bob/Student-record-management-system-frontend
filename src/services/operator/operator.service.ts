@@ -1,5 +1,6 @@
 import {
   AddOperator,
+  Signin,
   UpdateOperator,
   UpdateOperatorAsSuperAdmin,
 } from "./operator.type";
@@ -8,6 +9,9 @@ import request from "@/helpers/request";
 class OperatorService {
   base: string = "/operator";
   constructor(private readonly requestMethod: typeof request) {}
+  async signin(body: Signin) {
+    return await this.requestMethod.post({ body, url: "/auth/signin" });
+  }
   async createOperator(data: AddOperator) {
     return await this.requestMethod.post({ url: this.base, body: data });
   }
@@ -29,6 +33,9 @@ class OperatorService {
   }
   async findOperator(id: string) {
     return await this.requestMethod.get({ url: `${this.base}/:${id}` });
+  }
+  async fetchProfile() {
+    return await this.requestMethod.get({ url: `${this.base}/profile` });
   }
   async findManyOperators(query: string) {
     return await this.requestMethod.get({

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted, onUnmounted } from "vue";
 
 import { Card } from "@/components";
 import { Gender, Options } from "@/type";
@@ -112,7 +112,24 @@ const saveItem = <K extends keyof Student>(index: number, field: K) => {
     students[index][field] = editedValue.value as Student[typeof field];
   }
 };
+const fetchStudents = () => {};
 const years = ref(generateYears());
+
+onMounted(() => {
+  window.addEventListener("scroll", handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("scroll", handleScroll);
+});
+
+const handleScroll = () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1) {
+    fetchStudents();
+  }
+};
+// fetch students on created
+fetchStudents();
 </script>
 
 <template>
