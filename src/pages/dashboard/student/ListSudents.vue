@@ -129,7 +129,7 @@ const fetchStudents = async () => {
     queryString + `&admissionSet=${query.session}`;
   }
   const studentsData = await studentStore.fetchStudent(queryString);
-  students = studentsData;
+  students = [...studentsData.data];
 };
 const updateStudent = async (id: string, data: any) => {
   await studentStore.updateStudent(data, id);
@@ -200,7 +200,7 @@ fetchStudents();
       </div>
     </RenderIf>
     <RenderIf :condition="!!studentType && studentType == 'Multiple'">
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+      <div class="relative overflow-x-auto sm:rounded-lg">
         <div class="p-6 flex justify-end">
           <Button
             title="Register new student"
@@ -324,7 +324,7 @@ fetchStudents();
           <Spinner />
         </RenderIf>
         <RenderIf :condition="studentStore.isLoading == false && !students[0]">
-          <component :is="EmptyState" />
+          <div class="mt-20"><component :is="EmptyState" /></div>
         </RenderIf>
         <RenderIf :condition="studentStore.isLoading == false && !!students[0]">
           <table

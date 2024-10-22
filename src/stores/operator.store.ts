@@ -3,6 +3,7 @@ import {
   OperatorData,
   Signin,
   UpdateOperator,
+  UpdateOperatorAsSuperAdmin,
 } from "@/services/operator/operator.type";
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
@@ -88,10 +89,10 @@ export const useOperatorStore = defineStore("operator", () => {
     }
   };
 
-  const findManyOperators = async (query: string) => {
+  const findManyOperators = async () => {
     try {
       isLoading.value = true;
-      return await operatorService.findManyOperators(query);
+      return await operatorService.findManyOperators();
     } catch (error: any) {
       notify({
         type: "error",
@@ -170,10 +171,34 @@ export const useOperatorStore = defineStore("operator", () => {
       isLoading.value = false;
     }
   };
+  const updateOperator = async (
+    id: string,
+    data: UpdateOperatorAsSuperAdmin
+  ) => {
+    try {
+      isLoading.value = true;
+      await operatorService.updateOperator(id, data);
+      notify({
+        type: "success",
+        title: "Update Success",
+        text: "Operator updated successfully",
+      });
+    } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Update Error",
+        text: error.message || " could not update operator",
+      });
+      throw new Error(error.message || " could not update operator");
+    } finally {
+      isLoading.value = false;
+    }
+  };
   return {
     operatorProfile,
     isLoading,
     updateSelfOperator,
+    updateOperator,
     fetchProfile,
     isAuthenticated,
     route,

@@ -37,9 +37,9 @@ class OperatorService {
   async fetchProfile() {
     return await this.requestMethod.get({ url: `${this.base}/profile` });
   }
-  async findManyOperators(query: string) {
+  async findManyOperators() {
     return await this.requestMethod.get({
-      url: `${this.base}?${query}`,
+      url: `${this.base}`,
     });
   }
 }
