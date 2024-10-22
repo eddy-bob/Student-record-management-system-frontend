@@ -1,8 +1,9 @@
 export enum Options {
+  NONE = "Not Applicable",
   POWER = "Power",
   TELECOM = "Telecomunication",
   ELECTRONICS = "Electronics",
-  NONE = "Not Applicable",
+
   GENERAL = "General",
 }
 export enum Semester {
