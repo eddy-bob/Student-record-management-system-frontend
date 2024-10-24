@@ -5,9 +5,7 @@ defineProps<{
 </script>
 
 <template>
-  <div>
-    <slot v-if="condition"></slot>
-  </div>
+  <slot v-if="condition"></slot>
 </template>
 
 <style></style>

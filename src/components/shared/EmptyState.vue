@@ -74,7 +74,7 @@
           There’s no data here
         </h2>
         <p class="text-center text-black text-sm font-medium leading-snug pb-4">
-          Try changing your filters to <br />see appointments
+          Try changing your filters to <br />see your data
         </p>
       </div>
     </div>

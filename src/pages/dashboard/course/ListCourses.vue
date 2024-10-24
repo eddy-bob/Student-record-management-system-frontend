@@ -337,29 +337,43 @@ fetchCourses();
           </svg>
         </div>
       </section>
-      <RenderIf :condition="courseStore.isLoading">
-        <Spinner />
-      </RenderIf>
-      <RenderIf :condition="courseStore.isLoading == false && !courses[0]">
-        <div class="mt-20"><component :is="EmptyState" /></div>
-      </RenderIf>
-      <RenderIf :condition="!courseStore.isLoading && !!courses[0]">
-        <table
-          class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+
+      <table
+        class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+      >
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
         >
-          <thead
-            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
-          >
+          <tr>
+            <th scope="col" class="px-6 py-3">Title</th>
+            <th scope="col" class="px-6 py-3">CourseCode</th>
+            <th scope="col" class="px-6 py-3">Option</th>
+            <th scope="col" class="px-6 py-3">Unit</th>
+            <th scope="col" class="px-6 py-3">Level</th>
+            <th scope="col" class="px-6 py-3">Semester</th>
+            <th scope="col" class="px-6 py-3">Action</th>
+          </tr>
+        </thead>
+         <RenderIf :condition="courseStore.isLoading"">
+          <tbody>
             <tr>
-              <th scope="col" class="px-6 py-3">Title</th>
-              <th scope="col" class="px-6 py-3">CourseCode</th>
-              <th scope="col" class="px-6 py-3">Option</th>
-              <th scope="col" class="px-6 py-3">Unit</th>
-              <th scope="col" class="px-6 py-3">Level</th>
-              <th scope="col" class="px-6 py-3">Semester</th>
-              <th scope="col" class="px-6 py-3">Action</th>
+              <td colspan="7">
+                <div class="mt-20"><Spinner /></div>
+              </td>
             </tr>
-          </thead>
+          </tbody>
+        </RenderIf>
+        <RenderIf :condition="courseStore.isLoading == false && !courses[0]">
+          <tbody>
+            <tr>
+              <td colspan="7">
+                <div class="mt-20"><component :is="EmptyState" /></div>
+              </td>
+            </tr>
+          </tbody>
+        </RenderIf>
+    
+        <RenderIf :condition="!courseStore.isLoading && !!courses[0]">
           <tbody>
             <tr
               class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
@@ -574,10 +588,9 @@ fetchCourses();
                   class="font-medium text-red-800 dark:text-red-500"
                 />
               </td>
-            </tr>
-          </tbody>
-        </table>
-      </RenderIf>
+            </tr></tbody
+        ></RenderIf>
+      </table>
     </div>
   </div>
 </template>
