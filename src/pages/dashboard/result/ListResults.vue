@@ -376,7 +376,7 @@ watch(
             title="Add Course"
             class="text-sm"
             type="button"
-            :onClick="() => router.push('/add-result')"
+            :onClick="() => router.push('/upload-results')"
           />
         </div>
 
