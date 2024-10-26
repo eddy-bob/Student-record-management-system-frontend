@@ -53,6 +53,7 @@ const saveItem = (index: number, field: string) => {
     operators[index][field as keyof (typeof operators)[0]] =
       editedValue.value as any;
     updateOperator(operators[index].id, { [field]: editedValue.value });
+    currentlyEditedOperator.value = { index: -1, field: "" };
   }
 };
 const fetchAdmins = async () => {

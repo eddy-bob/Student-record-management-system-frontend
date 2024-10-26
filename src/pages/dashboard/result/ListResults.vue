@@ -70,6 +70,7 @@ const saveItem = <K extends keyof Result>(index: number, field: K) => {
   if (editedValue.value.trim()) {
     results[index][field] = editedValue.value as Result[typeof field];
     updateResult(results[index].id, { [field]: editedValue.value });
+    currentlyEditedOperator.value = { index: -1, field: "" };
   }
 };
 const fetchResults = async () => {

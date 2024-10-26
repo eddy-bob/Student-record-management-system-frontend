@@ -126,6 +126,8 @@ const saveItem = <K extends keyof Course>(index: number, field: K) => {
   if (editedValue.value.trim()) {
     courses[index][field] = editedValue.value as Course[typeof field];
     updateCourse(courses[index].id, { [field]: editedValue.value });
+      currentlyEditedOperator.value = {index:-1,field:''};
+
   }
 };
 const fetchCourses = async () => {

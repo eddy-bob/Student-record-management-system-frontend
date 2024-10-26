@@ -510,7 +510,6 @@ fetchStudents();
                       id="edit-gender"
                       class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
                     >
-                      <option selected>Sort by session</option>
                       <option
                         v-for="gender in Gender"
                         :key="gender"
