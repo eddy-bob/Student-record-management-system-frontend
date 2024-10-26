@@ -43,7 +43,9 @@ const handleFileChange = (event: Event) => {
         title: "File Load Error",
         text: " could not load  file",
       });
+      throw new Error("could not load  file");
     };
+
     reader.readAsText(file);
   }
 };
