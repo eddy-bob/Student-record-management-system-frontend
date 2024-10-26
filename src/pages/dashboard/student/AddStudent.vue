@@ -203,7 +203,7 @@ const years = ref(generateYears());
             multipleStudentData = [...files];
           }
         "
-        ></component>
+        />
       </form>
     </RenderIf>
     <RenderIf :condition="!!multipleStudentData[0]">
