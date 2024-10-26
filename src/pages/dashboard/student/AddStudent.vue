@@ -201,6 +201,7 @@ const years = ref(generateYears());
       </button>
       <div class="w-full flex justify-end pb-5">
         <Button
+          :loading="studentStore.isLoading"
           title="Create multiple students"
           class="text-indigo-700 text-sm"
           :onclick="() => createStudent(multipleStudentData)"
