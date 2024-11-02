@@ -5,11 +5,14 @@ import AppNav from "@/components/dashboard/AppNav.vue";
 import { useRouter } from "vue-router";
 import RenderIf from "@/components/shared/RenderIf.vue";
 import Button from "@/components/buttons/Button.vue";
+import { useOperatorStore } from "@/stores/operator.store";
 
+const operatorStore = useOperatorStore();
 const router = useRouter();
 const showlogout = ref(false);
 const signout = () => {
   localStorage.clear();
+  operatorStore.isAuthenticated = false;
   router.replace("/");
 };
 </script>

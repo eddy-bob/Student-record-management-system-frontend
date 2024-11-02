@@ -204,6 +204,7 @@ router.beforeEach(async (to) => {
   // initialize store
   const store = stores.useOperatorStore();
   if (!store.isAuthenticated && to.name !== "Signin" && to.meta.requireAuth) {
+   
     router.replace(`/login?next=${to.fullPath}`);
   }
 });

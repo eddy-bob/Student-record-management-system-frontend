@@ -16,7 +16,7 @@ export const useOperatorStore = defineStore("operator", () => {
   const route = useRoute();
   const router = useRouter();
 
-  const isAuthenticated = ref(false);
+  let isAuthenticated = ref(false);
 
   let operatorProfile = reactive<OperatorData>({
     email: "",
@@ -28,9 +28,9 @@ export const useOperatorStore = defineStore("operator", () => {
 
   const login = async (data: Signin) => {
     try {
-    
       isLoading.value = true;
       const signinData = await operatorService.signin(data);
+      isAuthenticated.value = true;
       operatorProfile.email = signinData.data.user.email;
       operatorProfile.firstName = signinData.data.user.firstName;
       operatorProfile.lastName = signinData.data.user.lastName;
