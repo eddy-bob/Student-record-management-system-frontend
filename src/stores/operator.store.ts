@@ -16,7 +16,7 @@ export const useOperatorStore = defineStore("operator", () => {
   const route = useRoute();
   const router = useRouter();
 
-  const isAuthenticated = ref(true);
+  const isAuthenticated = ref(false);
 
   let operatorProfile = reactive<OperatorData>({
     email: "",

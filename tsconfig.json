@@ -1,6 +1,5 @@
 {
   "module": "esnext",
-  "target": "ESNext",
   "moduleResolution": "Node",
   "files": [],
   "references": [
@@ -12,6 +11,7 @@
     }
   ],
   "compilerOptions": {
+    "target": "ESNext",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

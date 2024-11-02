@@ -8,7 +8,8 @@ import request from "@/helpers/request";
 
 class OperatorService {
   base: string = "/operator";
-  constructor(private readonly requestMethod: typeof request) {}
+  constructor(private readonly requestMethod: typeof request) {
+  }
   async signin(body: Signin) {
     return await this.requestMethod.post({ body, url: "/auth/signin" });
   }

@@ -12,7 +12,9 @@ const get = async ({ url }: Request) => {
 };
 
 const post = async ({ url, body }: Request) => {
-  return (await axiosInstance.post(url, body)).data;
+  const d = await axiosInstance.post(url, body);
+   console.log(d)
+   return d.data
 };
 
 const patch = ({ url, body }: Request) => axiosInstance.patch(url, body);

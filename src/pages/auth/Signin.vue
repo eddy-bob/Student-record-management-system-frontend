@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { reactive } from "vue";
 import Button from "@/components/buttons/Button.vue";
 import { Signin } from "@/services/operator/operator.type";
-import { reactive } from "vue";
 import { useOperatorStore } from "@/stores/operator.store";
 
 const operatorStore = useOperatorStore();

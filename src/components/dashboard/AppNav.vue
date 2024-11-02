@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineEmits } from "vue";
 import { useOperatorStore } from "@/stores/operator.store";
 
 const operatorStore = useOperatorStore();

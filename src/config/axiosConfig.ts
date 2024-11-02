@@ -19,9 +19,7 @@ const axiosInstance = axios.create({
 const onRequest = (
   request: InternalAxiosRequestConfig
 ): InternalAxiosRequestConfig => {
-  const token = getLocalStorage(process.env.VITE_AUTH_TKE as string);
-
-  if (!request.headers) return request;
+  const token = getLocalStorage(import.meta.env.VITE_AUTH_TKE as string);
   request.headers!.Authorization = `Bearer ${token}`;
   return request;
 };
@@ -35,15 +33,17 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
 };
 
 const onResponseError = async (error: AxiosError) => {
-  const statusCode = error.response!.status;
+  if (error.response) {
+    const statusCode = error.response!.status;
 
-  if (statusCode === 401 || statusCode === 403) {
-    localStorage.clear();
+    if (statusCode === 401 || statusCode === 403) {
+      localStorage.clear();
 
-    // redirect to login page if not already there
-    if (window.location.pathname !== "/login") {
-      let redirectUrl = `/login?next=${window.location.pathname}`;
-      window.location.href = redirectUrl;
+      // redirect to login page if not already there
+      if (window.location.pathname !== "/login") {
+        let redirectUrl = `/login?next=${window.location.pathname}`;
+        window.location.href = redirectUrl;
+      }
     }
   }
 
