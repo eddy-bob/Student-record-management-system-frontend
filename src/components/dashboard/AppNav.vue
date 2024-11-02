@@ -9,6 +9,11 @@ const toggleDropdown = (id: string) => {
     : dropdown?.classList.replace("block", "hidden");
 };
 const emit = defineEmits(["openLogoutModal"]);
+
+const  fetchProfile=async()=>{
+  await operatorStore.fetchProfile()
+}
+fetchProfile()
 </script>
 <template>
   <nav
@@ -74,8 +79,8 @@ const emit = defineEmits(["openLogoutModal"]);
               src="/images/user-icon.jpeg"
               alt="user photo"
             />
-            {{ operatorStore.operatorProfile.firstName || "Admin" }}
-            {{ operatorStore.operatorProfile.lastName || "Name" }}
+            {{ operatorStore.operatorProfile.firstName || "..." }}
+            {{ operatorStore.operatorProfile.lastName || "..." }}
             <svg
               class="w-2.5 h-2.5 ms-3"
               aria-hidden="true"

@@ -29,9 +29,11 @@ export const useCourseStore = defineStore("course", () => {
       notify({
         type: "error",
         title: "Fetch Error",
-        text: error.message || " could not fetch courses",
+        text: error.response?.data?.message || " could not fetch courses",
       });
-      throw new Error(error.message || " could not fetch courses");
+      throw new Error(
+        error.response?.data?.message || " could not fetch courses"
+      );
     } finally {
       console.log("finally");
       isLoading.value = false;
@@ -55,9 +57,11 @@ export const useCourseStore = defineStore("course", () => {
       notify({
         type: "error",
         title: "Add Error",
-        text: error.message || "Could not create course",
+        text: error.response?.data?.message || "Could not create course",
       });
-      throw new Error(error.message || "Could not create course");
+      throw new Error(
+        error.response?.data?.message || "Could not create course"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -80,9 +84,11 @@ export const useCourseStore = defineStore("course", () => {
       notify({
         type: "error",
         title: "Update Error",
-        text: error.message || "Could not update course",
+        text: error.response?.data?.message || "Could not update course",
       });
-      throw new Error(error.message || "Could not update course");
+      throw new Error(
+        error.response?.data?.message || "Could not update course"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -104,9 +110,11 @@ export const useCourseStore = defineStore("course", () => {
       notify({
         type: "error",
         title: "Delete Error",
-        text: error.message || "Could not delete course",
+        text: error.response?.data?.message || "Could not delete course",
       });
-      throw new Error(error.message || "Could not delete course");
+      throw new Error(
+        error.response?.data?.message || "Could not delete course"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -129,9 +137,11 @@ export const useCourseStore = defineStore("course", () => {
       notify({
         type: "error",
         title: "Fetch Error",
-        text: error.message || "Could not fetch course",
+        text: error.response?.data?.message || "Could not fetch course",
       });
-      throw new Error(error.message || "Could not fetch course");
+      throw new Error(
+        error.response?.data?.message || "Could not fetch course"
+      );
     } finally {
       isLoading.value = false;
     }

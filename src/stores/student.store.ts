@@ -28,9 +28,11 @@ export const useStudentStore = defineStore("student", () => {
       notify({
         type: "error",
         title: "Fetch Error",
-        text: error.message || " could not fetch students",
+        text: error.response?.data?.message || " could not fetch students",
       });
-      throw new Error(error.message || " could not fetch students");
+      throw new Error(
+        error.response?.data?.message || " could not fetch students"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -48,9 +50,11 @@ export const useStudentStore = defineStore("student", () => {
       notify({
         type: "error",
         title: "Fetch Error",
-        text: error.message || " could not fetch student",
+        text: error.response?.data?.message || " could not fetch student",
       });
-      throw new Error(error.message || " could not fetch student");
+      throw new Error(
+        error.response?.data?.message || " could not fetch student"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -67,9 +71,11 @@ export const useStudentStore = defineStore("student", () => {
       notify({
         type: "error",
         title: "Delete Error",
-        text: error.message || " could not delete student data",
+        text: error.response?.data?.message || " could not delete student data",
       });
-      throw new Error(error.message || " could not delete student data");
+      throw new Error(
+        error.response?.data?.message || " could not delete student data"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -91,9 +97,12 @@ export const useStudentStore = defineStore("student", () => {
       notify({
         type: "error",
         title: "Update Error",
-        text: error.message || " could not update student record",
+        text:
+          error.response?.data?.message || " could not update student record",
       });
-      throw new Error(error.message || " could not update student record");
+      throw new Error(
+        error.response?.data?.message || " could not update student record"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -115,9 +124,12 @@ export const useStudentStore = defineStore("student", () => {
       notify({
         type: "error",
         title: "Add Error",
-        text: error.message || " could not create student record",
+        text:
+          error.response?.data?.message || " could not create student record",
       });
-      throw new Error(error.message || " could not create student record");
+      throw new Error(
+        error.response?.data?.message || " could not create student record"
+      );
     } finally {
       isLoading.value = false;
     }

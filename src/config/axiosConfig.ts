@@ -13,7 +13,7 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json, text/plain, */*",
   },
-  withCredentials: true,
+  withCredentials: false,
 });
 
 const onRequest = (

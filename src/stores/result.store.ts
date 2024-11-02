@@ -28,9 +28,11 @@ export const useResultStore = defineStore("result", () => {
       notify({
         type: "error",
         title: "Fetch Error",
-        text: error.message || " could not fetch results",
+        text: error.response?.data?.message || " could not fetch results",
       });
-      throw new Error(error.message || " could not fetch results");
+      throw new Error(
+        error.response?.data?.message || " could not fetch results"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -51,9 +53,11 @@ export const useResultStore = defineStore("result", () => {
       notify({
         type: "error",
         title: "Update Error",
-        text: error.message || " could not update results",
+        text: error.response?.data?.message || " could not update results",
       });
-      throw new Error(error.message || " could not update results");
+      throw new Error(
+        error.response?.data?.message || " could not update results"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -74,9 +78,11 @@ export const useResultStore = defineStore("result", () => {
       notify({
         type: "error",
         title: "Add Error",
-        text: error.message || " could not upload results",
+        text: error.response?.data?.message || " could not upload results",
       });
-      throw new Error(error.message || " could not upload results");
+      throw new Error(
+        error.response?.data?.message || " could not upload results"
+      );
     } finally {
       isLoading.value = false;
     }

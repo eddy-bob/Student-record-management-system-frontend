@@ -28,23 +28,38 @@ export const useOperatorStore = defineStore("operator", () => {
 
   const login = async (data: Signin) => {
     try {
+    
       isLoading.value = true;
       const signinData = await operatorService.signin(data);
+      operatorProfile.email = signinData.data.user.email;
+      operatorProfile.firstName = signinData.data.user.firstName;
+      operatorProfile.lastName = signinData.data.user.lastName;
+      operatorProfile.role = signinData.data.user.role;
+      // save access token to local storage
       saveLocalStorage(
         signinData.data.accessToken,
         import.meta.env.VITE_AUTH_TKE as string
       );
+      // save user data to localstorage
+      saveLocalStorage(
+        signinData.data.user,
+        import.meta.env.VITE_USER_DATA as string
+      );
       if (route.query.next) {
-        router.replace(route.query.next as string);
+        console.log(route.query.next);
+        return router.replace(route.query.next as string);
       }
       router.replace("/analytics");
     } catch (error: any) {
+      console.log(error);
       notify({
         type: "error",
         title: "Authentication Error",
-        text: error.message || "Could not login operator",
+        text: error.response?.data?.message || "Could not login operator",
       });
-      throw new Error(error.message || "Could not login operator");
+      throw new Error(
+        error.response.data.message || "Could not login operator"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -60,9 +75,11 @@ export const useOperatorStore = defineStore("operator", () => {
       notify({
         type: "error",
         title: "Fetch Error",
-        text: error.message || " could not fetch operator",
+        text: error.response?.data?.message || " could not fetch operator",
       });
-      throw new Error(error.message || " could not fetch operator");
+      throw new Error(
+        error.response?.data?.message || " could not fetch operator"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -81,9 +98,11 @@ export const useOperatorStore = defineStore("operator", () => {
       notify({
         type: "error",
         title: "Add Error",
-        text: error.message || " could not create operator",
+        text: error.response?.data?.message || " could not create operator",
       });
-      throw new Error(error.message || " could not create operator");
+      throw new Error(
+        error.response?.data?.message || " could not create operator"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -97,9 +116,11 @@ export const useOperatorStore = defineStore("operator", () => {
       notify({
         type: "error",
         title: "Fetch Error",
-        text: error.message || " could not fetch operators",
+        text: error.response?.data?.message || " could not fetch operators",
       });
-      throw new Error(error.message || " could not fetch operators");
+      throw new Error(
+        error.response?.data?.message || " could not fetch operators"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -117,9 +138,11 @@ export const useOperatorStore = defineStore("operator", () => {
       notify({
         type: "error",
         title: "Delete Error",
-        text: error.message || " could not delete operator",
+        text: error.response?.data?.message || " could not delete operator",
       });
-      throw new Error(error.message || " could not delete operator");
+      throw new Error(
+        error.response?.data?.message || " could not delete operator"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -140,9 +163,11 @@ export const useOperatorStore = defineStore("operator", () => {
       notify({
         type: "error",
         title: "Fetch Error",
-        text: error.message || " could not fetch profile",
+        text: error.response?.data?.message || " could not fetch profile",
       });
-      throw new Error(error.message || " could not fetch profile");
+      throw new Error(
+        error.response?.data?.message || " could not fetch profile"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -164,9 +189,11 @@ export const useOperatorStore = defineStore("operator", () => {
       notify({
         type: "error",
         title: "Update Error",
-        text: error.message || " could not update profile",
+        text: error.response?.data?.message || " could not update profile",
       });
-      throw new Error(error.message || " could not update self");
+      throw new Error(
+        error.response?.data?.message || " could not update self"
+      );
     } finally {
       isLoading.value = false;
     }
@@ -187,9 +214,11 @@ export const useOperatorStore = defineStore("operator", () => {
       notify({
         type: "error",
         title: "Update Error",
-        text: error.message || " could not update operator",
+        text: error.response?.data?.message || " could not update operator",
       });
-      throw new Error(error.message || " could not update operator");
+      throw new Error(
+        error.response?.data?.message || " could not update operator"
+      );
     } finally {
       isLoading.value = false;
     }
