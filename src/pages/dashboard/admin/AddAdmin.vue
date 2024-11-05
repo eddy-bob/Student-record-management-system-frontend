@@ -153,6 +153,7 @@ const createOperator = async () => {
 
       <div class="flex w-full">
         <Button
+        :loading="operatorStore.isLoading"
           title="Create Admin"
           type="submit"
           class="text-white mb-2 bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm w-full px-5 py-2.5 text-center"

@@ -11,7 +11,6 @@ export const useCourseStore = defineStore("course", () => {
   const totalPage = ref(0);
 
   const fetchCourses = async (query: string) => {
-    console.log("entered here");
     try {
       if (!isLoading.value) {
         isLoading.value = true;
@@ -35,7 +34,6 @@ export const useCourseStore = defineStore("course", () => {
         error.response?.data?.message || " could not fetch courses"
       );
     } finally {
-      console.log("finally");
       isLoading.value = false;
     }
   };

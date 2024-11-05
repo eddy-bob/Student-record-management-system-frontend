@@ -129,7 +129,7 @@ const fetchStudents = async () => {
     queryString + `&admissionSet=${query.session}`;
   }
   const studentsData = await studentStore.fetchStudent(queryString);
-  students = [...studentsData.data];
+  students = [...studentsData.items];
 };
 const updateStudent = async (id: string, data: any) => {
   await studentStore.updateStudent(data, id);

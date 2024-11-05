@@ -13,7 +13,6 @@ const get = async ({ url }: Request) => {
 
 const post = async ({ url, body }: Request) => {
   const d = await axiosInstance.post(url, body);
-   console.log(d)
    return d.data
 };
 

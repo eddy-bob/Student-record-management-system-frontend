@@ -85,7 +85,7 @@ const fetchResults = async () => {
     queryString + `&semester=${searchQuery.semester}`;
   }
   const coursesData = await resultStore.fetchResults(queryString);
-  results = [...coursesData.data];
+  results = [...coursesData.items];
 };
 
 const updateResult = async (id: string, data: any) => {

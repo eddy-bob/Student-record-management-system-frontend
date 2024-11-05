@@ -114,11 +114,10 @@ const updateProfile = async () => {
                   for="confirm-password"
                   class="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  New Password</label
+                  Update Password</label
                 >
                 <div class="mt-2">
                   <input
-                    required
                     v-model="data.newPassword"
                     id="confirm-pasword"
                     name="confirm-password"

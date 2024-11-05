@@ -6,6 +6,8 @@ import { useOperatorStore } from "@/stores/operator.store";
 import { Button } from "@/components";
 import { useRouter } from "vue-router";
 import EmptyState from "@/components/shared/EmptyState.vue";
+import Spinner from "@/components/shared/Spinner.vue";
+
 const operatorStore = useOperatorStore();
 
 const router = useRouter();
@@ -46,7 +48,7 @@ const editField = (index: number, field: string) => {
   editedValue.value = operators[index][field as keyof (typeof operators)[0]];
 };
 const updateOperator = async (id: string, data: any) => {
-  await operatorStore.updateOperator(id, data.value);
+  await operatorStore.updateOperator(id, data);
 };
 const saveItem = (index: number, field: string) => {
   if (editedValue.value.trim()) {
@@ -58,7 +60,7 @@ const saveItem = (index: number, field: string) => {
 };
 const fetchAdmins = async () => {
   const operatorsData = await operatorStore.findManyOperators();
-  operators = [...operatorsData.data];
+  operators.splice(0, operators.length, ...operatorsData);
 };
 const deleteAdmin = async (id: string) => {
   await operatorStore.deleteOperator(id);
@@ -101,7 +103,9 @@ fetchAdmins();
           </tr>
         </tbody>
       </RenderIf>
-      <RenderIf :condition="operatorStore.isLoading == false && !operators[0]">
+      <RenderIf
+        :condition="operatorStore.isLoading == false && operators.length == 0"
+      >
         <tbody>
           <tr>
             <td colspan="7">
@@ -110,7 +114,9 @@ fetchAdmins();
           </tr>
         </tbody>
       </RenderIf>
-      <RenderIf :condition="operatorStore.isLoading == false && !!operators[0]">
+      <RenderIf
+        :condition="operatorStore.isLoading == false && operators.length > 0"
+      >
         <tbody>
           <tr
             class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
@@ -170,7 +176,7 @@ fetchAdmins();
                   currentlyEditedOperator.field !== 'lastName'
                 "
               >
-                {{ data.firstName
+                {{ data.lastName
                 }}<i
                   class="fa-solid fa-pencil"
                   @click="editField(i, 'lastName')"
@@ -211,12 +217,21 @@ fetchAdmins();
                   currentlyEditedOperator.field === 'role'
                 "
               >
-                <input
+                <select
+                  @change="saveItem(i, 'role')"
+                  id="role"
                   v-model="editedValue"
-                  class="bg-grey-400"
-                  @blur="saveItem(i, 'role')"
-                  @keyup.enter="saveItem(i, 'role')"
-                />
+                  required
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                >
+                  <option value="" disabled selected>Select a role...</option>
+                  <option
+                    v-for="(role, i) in Object.values(Role).slice(1)"
+                    :key="i"
+                  >
+                    {{ role }}
+                  </option>
+                </select>
               </RenderIf>
 
               <RenderIf
@@ -231,6 +246,7 @@ fetchAdmins();
             </td>
             <td class="px-6 py-4">
               <button
+                :disabled="data.role === Role.Super ? true : false"
                 :onclick="() => deleteAdmin(data.id)"
                 type="button"
                 class="font-medium text-red-600 dark:text-blue-500 hover:underline"

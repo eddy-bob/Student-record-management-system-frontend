@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useOperatorStore } from "@/stores/operator.store";
+import { getLocalStorage } from "@/helpers/localStorage";
 
 const operatorStore = useOperatorStore();
 const toggleDropdown = (id: string) => {
@@ -10,10 +11,12 @@ const toggleDropdown = (id: string) => {
 };
 const emit = defineEmits(["openLogoutModal"]);
 
-const  fetchProfile=async()=>{
-  await operatorStore.fetchProfile()
-}
-fetchProfile()
+const fetchProfile = async () => {
+  await operatorStore.fetchProfile();
+};
+const profile = getLocalStorage(import.meta.env.VITE_USER_DATA);
+
+!!profile == false ? fetchProfile() : (operatorStore.operatorProfile = profile);
 </script>
 <template>
   <nav
@@ -79,8 +82,8 @@ fetchProfile()
               src="/images/user-icon.jpeg"
               alt="user photo"
             />
-            {{ operatorStore.operatorProfile.firstName || "..." }}
-            {{ operatorStore.operatorProfile.lastName || "..." }}
+            {{ operatorStore.operatorProfile?.firstName }}
+            {{ operatorStore.operatorProfile?.lastName }}
             <svg
               class="w-2.5 h-2.5 ms-3"
               aria-hidden="true"
@@ -105,12 +108,10 @@ fetchProfile()
           >
             <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
               <div class="font-medium">
-                {{ operatorStore.operatorProfile.role || "Operator Role" }}
+                {{ operatorStore.operatorProfile.role || "..." }}
               </div>
               <div class="truncate">
-                {{
-                  operatorStore.operatorProfile.email || "operator@gmail.com"
-                }}
+                {{ operatorStore.operatorProfile.email || "..." }}
               </div>
             </div>
             <ul

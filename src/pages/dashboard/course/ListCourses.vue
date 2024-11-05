@@ -142,7 +142,7 @@ const fetchCourses = async () => {
     queryString + `&semester=${searchQuery.semester}`;
   }
   const coursesData = await courseStore.fetchCourses(queryString);
-  courses = [...coursesData.data];
+  courses = [...coursesData.items];
 };
 const updateCourse = async (id: string, data: any) => {
   await courseStore.updateCourse(data, id);

@@ -1,6 +1,5 @@
 import { createWebHistory, createRouter, Router } from "vue-router";
 import NProgress from "nprogress";
-import stores from "./stores";
 
 // public pages
 import homeView from "./pages/dashboard/Home.vue";
@@ -25,6 +24,7 @@ import ListResults from "./pages/dashboard/result/ListResults.vue";
 import AddStudent from "./pages/dashboard/student/AddStudent.vue";
 import ListSudents from "./pages/dashboard/student/ListSudents.vue";
 import StudentProfile from "./pages/dashboard/student/SingleStudent.vue";
+import { getLocalStorage } from "./helpers/localStorage";
 
 const routes = [
   {
@@ -202,9 +202,8 @@ const router: Router = createRouter({
 //navigation guard
 router.beforeEach(async (to) => {
   // initialize store
-  const store = stores.useOperatorStore();
-  if (!store.isAuthenticated && to.name !== "Signin" && to.meta.requireAuth) {
-   
+  const tke = getLocalStorage(import.meta.env.VITE_AUTH_TKE);
+  if (!tke && to.name !== "Signin" && to.meta.requireAuth) {
     router.replace(`/login?next=${to.fullPath}`);
   }
 });

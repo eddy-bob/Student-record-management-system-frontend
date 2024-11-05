@@ -18,7 +18,7 @@ export const useOperatorStore = defineStore("operator", () => {
 
   let isAuthenticated = ref(false);
 
-  let operatorProfile = reactive<OperatorData>({
+  let operatorProfile = ref<OperatorData>({
     email: "",
     firstName: "",
     lastName: "",
@@ -31,10 +31,10 @@ export const useOperatorStore = defineStore("operator", () => {
       isLoading.value = true;
       const signinData = await operatorService.signin(data);
       isAuthenticated.value = true;
-      operatorProfile.email = signinData.data.user.email;
-      operatorProfile.firstName = signinData.data.user.firstName;
-      operatorProfile.lastName = signinData.data.user.lastName;
-      operatorProfile.role = signinData.data.user.role;
+      operatorProfile.value.email = signinData.data.user.email;
+      operatorProfile.value.firstName = signinData.data.user.firstName;
+      operatorProfile.value.lastName = signinData.data.user.lastName;
+      operatorProfile.value.role = signinData.data.user.role;
       // save access token to local storage
       saveLocalStorage(
         signinData.data.accessToken,
@@ -46,12 +46,10 @@ export const useOperatorStore = defineStore("operator", () => {
         import.meta.env.VITE_USER_DATA as string
       );
       if (route.query.next) {
-        console.log(route.query.next);
         return router.replace(route.query.next as string);
       }
       router.replace("/analytics");
     } catch (error: any) {
-      console.log(error);
       notify({
         type: "error",
         title: "Authentication Error",
@@ -153,10 +151,11 @@ export const useOperatorStore = defineStore("operator", () => {
       isLoading.value = true;
 
       const operator = await operatorService.fetchProfile();
-      operatorProfile.email = operator.data.email;
-      operatorProfile.firstName = operator.data.firstName;
-      operatorProfile.lastName = operator.data.lastName;
-      operatorProfile.role = operator.data.role;
+      operatorProfile.value.email = operator.email;
+      operatorProfile.value.firstName = operator.firstName;
+      operatorProfile.value.lastName = operator.lastName;
+      operatorProfile.value.role = operator.role;
+      saveLocalStorage(operator, import.meta.env.VITE_USER_DATA);
 
       return operator;
     } catch (error: any) {
@@ -178,7 +177,11 @@ export const useOperatorStore = defineStore("operator", () => {
       isLoading.value = true;
 
       const operator = await operatorService.updateSelfOperator(data);
-      operatorProfile = { ...operatorProfile, ...data };
+      operatorProfile.value = { ...operatorProfile.value, ...data };
+      saveLocalStorage(
+        { ...operatorProfile.value, ...data },
+        import.meta.env.VITE_USER_DATA
+      );
       notify({
         type: "success",
         title: "Profile Update Success",
