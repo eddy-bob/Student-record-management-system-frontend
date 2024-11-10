@@ -55,6 +55,31 @@ export const useResultStore = defineStore("result", () => {
       isLoading.value = false;
     }
   };
+  const deleteResult = async (id: string) => {
+    try {
+      if (!isLoading.value) {
+        isLoading.value = true;
+        const deletedResult = await resultService.deleteResult(id);
+        notify({
+          type: "success",
+          title: "Delete Success",
+          text: "Result deleted successfully",
+        });
+        return deletedResult;
+      }
+    } catch (error: any) {
+      notify({
+        type: "error",
+        title: "Delete Error",
+        text: error.response?.data?.message || " could not update results",
+      });
+      throw new Error(
+        error.response?.data?.message || " could not remove result"
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  };
   const uploadResult = async (data: AddResult[]) => {
     try {
       if (!isLoading.value) {
@@ -81,5 +106,5 @@ export const useResultStore = defineStore("result", () => {
     }
   };
 
-  return { isLoading, uploadResult, fetchResults, updateResult };
+  return { isLoading, uploadResult, fetchResults, updateResult, deleteResult };
 });
