@@ -6,8 +6,10 @@ import { useStudentStore } from "@/stores/student.store";
 import { AddStudent } from "@/services/student/student.type";
 import SelectFile from "@/components/forms/SelectFile.vue";
 import RenderIf from "@/components/shared/RenderIf.vue";
+import { useRouter } from "vue-router";
 
 const studentStore = useStudentStore();
+const router = useRouter();
 const studentData = reactive<AddStudent>({
   regNumber: "",
   firstName: "",
@@ -49,13 +51,18 @@ const generateYears = () => {
 const createStudent = async (data?: AddStudent[]) => {
   data
     ? await studentStore.addStudent(data)
-    : await studentStore.addStudent([studentData]);
+    : await studentStore.addStudent([
+        { ...studentData, regNumber: studentData.regNumber.toUpperCase() },
+      ]);
 };
 const years = ref(generateYears());
 </script>
 
 <template>
-  <div class="">
+  <div class="max-h-screen overflow-y-scroll">
+    <div>
+      <i class="fa fa-arrow-left cursor-pointer" @click="router.go(-1)"></i>
+    </div>
     <p
       for="password"
       class="block mb-7 font-medium text-center text-[30px] text-gray-900 dark:text-white"

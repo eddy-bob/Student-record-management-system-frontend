@@ -7,21 +7,14 @@ import { AddStudent, UpdateStudent } from "@/services/student/student.type";
 
 export const useStudentStore = defineStore("student", () => {
   const isLoading = ref(false);
-  const page = ref(0);
-  const totalPage = ref(0);
 
-  const fetchStudents = async (query: string) => {
+  const fetchStudents = async (query: string, pageNumber = 1) => {
     try {
       if (!isLoading.value) {
         isLoading.value = true;
 
-        if (page.value == totalPage.value && totalPage.value !== 0) {
-          return;
-        }
-        page.value += 1;
-        const queryString = `page=${page.value}${query}`;
+        const queryString = `page=${pageNumber}${query}`;
         const students = await studentService.findManyStudents(queryString);
-        totalPage.value = students.totalPage;
         return students;
       }
     } catch (error: any) {
@@ -141,6 +134,5 @@ export const useStudentStore = defineStore("student", () => {
     deleteStudent,
     fetchStudents,
     fetchStudent,
-    page,
   };
 });

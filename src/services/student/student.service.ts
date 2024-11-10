@@ -10,12 +10,12 @@ class StudentService {
 
   async updateStudent(data: UpdateStudent, id: string) {
     return await this.requestMethod.patch({
-      url: `${this.base}/:${id}`,
+      url: `${this.base}/${id}`,
       body: data,
     });
   }
   async deleteStudent(id: string) {
-    return await this.requestMethod.delete(id);
+    return await this.requestMethod.delete(`${this.base}/${id}`);
   }
   async findStudent(query: string) {
     return await this.requestMethod.get({ url: `${this.base}?${query}` });

@@ -12,6 +12,7 @@ recordManager.use(router);
 recordManager.use(store);
 recordManager.use(Notifications, {
   ignoreDuplicates: true,
+  duration: 8,
 });
 recordManager.use(Vue3Lottie);
 recordManager.mount("#app");

@@ -4,9 +4,7 @@ import comingSoon from "../../assets/lotties/coming-soon.json";
 </script>
 
 <template>
-  <div
-    class="min-h-screen flex flex-col justify-center items-center bg-gray-100"
-  >
+  <div class="h-screen flex flex-col justify-center items-center bg-gray-100">
     <Vue3Lottie
       ref="customControl"
       :animationData="comingSoon"

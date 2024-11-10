@@ -35,8 +35,9 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
 const onResponseError = async (error: AxiosError) => {
   if (error.response) {
     const statusCode = error.response!.status;
+    console.log(window.location);
 
-    if (statusCode === 401 || statusCode === 403) {
+    if (statusCode === 401) {
       localStorage.clear();
 
       // redirect to login page if not already there

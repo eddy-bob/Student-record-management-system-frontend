@@ -10,15 +10,15 @@ class ResultService {
 
   async updateResult(data: UpdateResult, id: string) {
     return await this.requestMethod.patch({
-      url: `${this.base}/:${id}`,
+      url: `${this.base}/${id}`,
       body: data,
     });
   }
   async deleteResult(id: string) {
-    return await this.requestMethod.delete(id);
+    return await this.requestMethod.delete(`${this.base}/${id}`);
   }
   async findResult(id: string) {
-    return await this.requestMethod.get({ url: `${this.base}/:${id}` });
+    return await this.requestMethod.get({ url: `${this.base}/${id}` });
   }
   async findManyResults(query: string) {
     return await this.requestMethod.get({

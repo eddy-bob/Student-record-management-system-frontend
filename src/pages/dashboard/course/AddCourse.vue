@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { reactive } from "vue";
+import { useRouter } from "vue-router";
 import { Button } from "@/components";
 import { Semester, Options, Level } from "@/type";
-import { reactive } from "vue";
 import { useCourseStore } from "@/stores/course.store";
 import { AddCourse } from "@/services/course/course.type";
 
 const courseStore = useCourseStore();
+const router = useRouter();
 const courseData = reactive<AddCourse>({
   title: "",
 
@@ -21,12 +23,22 @@ const courseData = reactive<AddCourse>({
 });
 
 const createCourse = async () => {
-  await courseStore.addCourse([courseData]);
+  const { title, courseCode, ...others } = courseData;
+  await courseStore.addCourse([
+    {
+      ...others,
+      title: title.toUpperCase(),
+      courseCode: courseCode.toUpperCase(),
+    },
+  ]);
 };
 </script>
 
 <template>
   <div class="">
+    <div>
+      <i class="fa fa-arrow-left cursor-pointer" @click="router.go(-1)"></i>
+    </div>
     <p
       for="password"
       class="block mb-7 font-medium text-center text-[30px] text-gray-900 dark:text-white"
@@ -43,6 +55,7 @@ const createCourse = async () => {
           >
           <input
             type="text"
+            v-model="courseData.title"
             id="title"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             placeholder="course title here"

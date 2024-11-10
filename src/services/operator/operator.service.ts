@@ -32,7 +32,7 @@ class OperatorService {
     });
   }
   async findOperator(id: string) {
-    return await this.requestMethod.get({ url: `${this.base}/:${id}` });
+    return await this.requestMethod.get({ url: `${this.base}/${id}` });
   }
   async fetchProfile() {
     return await this.requestMethod.get({ url: `${this.base}/profile` });

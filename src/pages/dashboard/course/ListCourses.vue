@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, onUnmounted } from "vue";
+import { reactive, ref, useTemplateRef } from "vue";
 import { useCourseStore } from "@/stores/course.store";
 import { Level, Options, Semester } from "@/type";
 import { Button } from "@/components";
@@ -7,12 +7,13 @@ import { useRouter } from "vue-router";
 import RenderIf from "@/components/shared/RenderIf.vue";
 import EmptyState from "@/components/shared/EmptyState.vue";
 import Spinner from "@/components/shared/Spinner.vue";
+import downloadCSV from "@/utils/downloadCSV";
 
 const router = useRouter();
 const courseStore = useCourseStore();
 const editedValue = ref("");
-
-const searchQuery = reactive<{
+const isCsvDownloading = ref(false);
+const searchQuery = ref<{
   semester?: Semester;
   level?: Level;
   option?: Options;
@@ -32,91 +33,10 @@ interface Course {
   semester: Semester;
 }
 let courses = reactive<Course[]>([]);
+const page = ref(1);
+const totalPages = ref<number | undefined>();
 
-// const courses = reactive<Course[]>([
-//   {
-//     id: "1",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-//   {
-//     id: "2",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-//   {
-//     id: "3",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-//   {
-//     id: "4",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-//   {
-//     id: "5",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-//   {
-//     id: "6",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-//   {
-//     id: "7",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-//   {
-//     id: "8",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-//   {
-//     id: "9",
-//     title: "Engineering mathematics 1",
-//     courseCode: "MATH 201",
-//     option: Options.GENERAL,
-//     unit: "3",
-//     level: Level.SECOND,
-//     semester: Semester.FIRST,
-//   },
-// ]);
-
+const scrollDiv = useTemplateRef("scrollDiv");
 // methods
 const editField = <K extends keyof Course>(index: number, field: K) => {
   currentlyEditedOperator.value = { index, field };
@@ -126,58 +46,110 @@ const saveItem = <K extends keyof Course>(index: number, field: K) => {
   if (editedValue.value.trim()) {
     courses[index][field] = editedValue.value as Course[typeof field];
     updateCourse(courses[index].id, { [field]: editedValue.value });
-      currentlyEditedOperator.value = {index:-1,field:''};
-
+    currentlyEditedOperator.value = { index: -1, field: "" };
   }
 };
-const fetchCourses = async () => {
+const fetchCourses = async (limit?: number) => {
   let queryString = "";
-  if (!!searchQuery.option) {
-    queryString + `&option=${searchQuery.option}`;
+
+  if (searchQuery.value.option) {
+    queryString += `&option=${searchQuery.value.option}`;
   }
-  if (!!searchQuery.level) {
-    queryString + `&level=${searchQuery.level}`;
+  if (searchQuery.value.level) {
+    queryString += `&level=${searchQuery.value.level}`;
   }
-  if (!!searchQuery.semester) {
-    queryString + `&semester=${searchQuery.semester}`;
+  if (searchQuery.value.semester) {
+    queryString += `&semester=${searchQuery.value.semester}`;
   }
-  const coursesData = await courseStore.fetchCourses(queryString);
-  courses = [...coursesData.items];
+  if (limit) {
+    queryString += `&limit=${limit}`;
+  }
+
+  const coursesData = await courseStore.fetchCourses(queryString, page.value);
+  if (coursesData?.items) {
+    totalPages.value = coursesData.meta.totalPages;
+    courses.splice(0, courses.length, ...coursesData?.items);
+    if (scrollDiv.value) {
+      scrollDiv.value.scrollTop = 20;
+    }
+    return coursesData;
+  }
+  return [];
 };
 const updateCourse = async (id: string, data: any) => {
   await courseStore.updateCourse(data, id);
 };
+const download = async () => {
+  if (courses.length < 1) return;
+  isCsvDownloading.value = true;
+  const singleFetch = totalPages.value ? totalPages.value * 20 : 1 * 20;
+  const data = await fetchCourses(singleFetch);
+  if (data?.items) {
+    downloadCSV(data.items, "courses");
+  }
+  isCsvDownloading.value = false;
+};
 
-onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
-
+const deleteCourse = async (id: string) => {
+  const isDeleted = await courseStore.deleteCourse(id);
+  if (isDeleted) {
+    const filteredCourses = courses.filter((course) => {
+      return course.id !== id;
+    });
+    courses.splice(0, courses.length, ...filteredCourses);
+  }
+};
 const handleScroll = () => {
-  if (
-    window.innerHeight + window.scrollY >= document.body.offsetHeight - 1 &&
-    courses[0]
-  ) {
-    fetchCourses();
+  if (scrollDiv.value) {
+    const scrollTop = scrollDiv.value?.scrollTop;
+
+    if (
+      scrollTop + scrollDiv.value?.clientHeight >=
+        scrollDiv.value?.scrollHeight &&
+      courses[0]
+    ) {
+      if (totalPages && page.value !== totalPages.value) {
+        page.value += 1;
+        fetchCourses();
+      }
+    }
+    if (scrollTop === 0 && courses[0]) {
+      if (page.value !== 1) {
+        page.value -= 1;
+        fetchCourses();
+      }
+    }
   }
 };
 // fetch courses on created
+
 fetchCourses();
 </script>
 
 <template>
-  <div>
-    <div class="relative overflow-x-auto sm:rounded-lg">
-      <div class="p-6 flex justify-end">
-        <Button
-          title="Add Course"
-          class="text-sm"
-          type="button"
-          :onClick="() => router.push('/add-course')"
-        />
+  <div
+    ref="scrollDiv"
+    @scroll="handleScroll"
+    class="max-h-screen m-h-screen overflow-y-scroll"
+  >
+    <div class="relative sm:rounded-lg">
+      <div class="p-6 flex justify-between">
+        <i class="fa fa-arrow-left cursor-pointer" @click="router.go(-1)"></i>
+        <div class="flex gap-2">
+          <Button
+            title="Download CSV"
+            class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white"
+            type="button"
+            :loading="isCsvDownloading"
+            :onClick="() => download()"
+          />
+          <Button
+            title="Add Course"
+            class="text-sm"
+            type="button"
+            :onClick="() => router.push('/add-course')"
+          />
+        </div>
       </div>
 
       <!-- filter -->
@@ -203,12 +175,12 @@ fetchCourses();
                 />
               </svg>
               <select
-                @change="fetchCourses"
+                @change="() => fetchCourses()"
                 v-model="searchQuery.level"
                 id="level"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
-                <option disabled>Sort by level</option>
+                <option :value="null" selected>Sort by level</option>
                 <option v-for="level in Level" :key="level" :value="level">
                   {{ level }}
                 </option>
@@ -247,12 +219,12 @@ fetchCourses();
                 />
               </svg>
               <select
-                @change="fetchCourses"
+                @change="() => fetchCourses()"
                 v-model="searchQuery.semester"
                 id="semester"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
-                <option disabled>Sort by semester</option>
+                <option :value="null" selected>Sort by semester</option>
                 <option
                   v-for="semester in Semester"
                   :key="semester"
@@ -295,12 +267,12 @@ fetchCourses();
                 />
               </svg>
               <select
-                @change="fetchCourses"
+                @change="() => fetchCourses()"
                 v-model="searchQuery.option"
                 id="option"
                 class="h-12 border border-gray-3 text-sm text-gray-900 pl-11 font-medium leading-7 rounded-xl block w-full py-2.5 px-2 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
-                <option disabled>Sort by option</option>
+                <option :value="null" selected>Sort by option</option>
                 <option
                   v-for="(option, i) in Object.values(Options).splice(1, 4)"
                   :key="i"
@@ -341,7 +313,7 @@ fetchCourses();
       </section>
 
       <table
-        class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+        class="w-full overflow-scroll text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
       >
         <thead
           class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
@@ -356,7 +328,7 @@ fetchCourses();
             <th scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
-         <RenderIf :condition="courseStore.isLoading"">
+        <RenderIf :condition="courseStore.isLoading">
           <tbody>
             <tr>
               <td colspan="7">
@@ -374,7 +346,7 @@ fetchCourses();
             </tr>
           </tbody>
         </RenderIf>
-    
+
         <RenderIf :condition="!courseStore.isLoading && !!courses[0]">
           <tbody>
             <tr
@@ -384,7 +356,7 @@ fetchCourses();
             >
               <th
                 scope="row"
-                class="px-6 py-4 cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                class="px-6 py-4 max-w-60 overflow-x-auto cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white"
               >
                 <RenderIf
                   :condition="
@@ -586,7 +558,7 @@ fetchCourses();
                 <Button
                   title="Delete"
                   type="button"
-                  :onClick="() => {}"
+                  :onClick="() => deleteCourse(data.id)"
                   class="font-medium text-red-800 dark:text-red-500"
                 />
               </td>

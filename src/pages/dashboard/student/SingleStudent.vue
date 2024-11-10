@@ -20,19 +20,24 @@ const studentData = reactive({
 });
 const fetchStudent = async (id: any) => {
   if (typeof id === "object" && id[0]) id = id.join("/");
-  const student = await studentStore.fetchStudent(`regNumber=${id}`);
-  studentData.firstName = student.data.firstName;
-  studentData.gender = student.data.gender;
+  const student = await studentStore.fetchStudent(
+    `regNumber=${id.toUpperCase()}`
+  );
+  if (student) {
+    console.log(student);
+    studentData.firstName = student.firstName;
+    studentData.gender = student.gender;
 
-  studentData.lastName = student.data.lastName;
+    studentData.lastName = student.lastName;
 
-  studentData.middleName = student.data.middleName;
+    studentData.middleName = student.middleName;
 
-  studentData.option = student.data.option;
+    studentData.option = student.option;
 
-  studentData.admissionSet = student.data.admissionSet;
+    studentData.admissionSet = student.admissionSet;
 
-  studentData.regNumber = student.data.regNumber;
+    studentData.regNumber = student.regNumber;
+  }
 };
 const studentReg = computed(() => {
   return route.params.id;
@@ -41,14 +46,16 @@ fetchStudent(studentReg.value);
 </script>
 
 <template>
-  <div class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div
+    class="bg-gray-100 flex items-center justify-center max-h-screen overflow-y-scroll"
+  >
     <div class="bg-white shadow-lg rounded-lg p-6 max-w-sm w-full">
       <RenderIf :condition="studentStore.isLoading">
         <Spinner />
       </RenderIf>
       <RenderIf
         :condition="
-          studentStore.isLoading == false && studentData.regNumber === ''
+          studentStore.isLoading == false && studentData?.regNumber === ''
         "
       >
         <component :is="EmptyState" />
@@ -56,7 +63,7 @@ fetchStudent(studentReg.value);
 
       <RenderIf
         :condition="
-          studentStore.isLoading == false && studentData.regNumber !== ''
+          studentStore.isLoading == false && studentData?.regNumber !== ''
         "
       >
         <div class="flex flex-col items-center mb-6">
@@ -66,8 +73,8 @@ fetchStudent(studentReg.value);
             alt="Profile Picture"
           />
           <h1 class="text-2xl font-semibold mt-2">
-            {{ studentData.firstName }} {{ studentData.lastName }}
-            {{ studentData.middleName }}
+            {{ studentData?.firstName }} {{ studentData?.lastName }}
+            {{ studentData?.middleName }}
           </h1>
         </div>
 
@@ -76,21 +83,21 @@ fetchStudent(studentReg.value);
             >Registration Number</label
           >
           <p class="mt-1 text-md font-bold text-gray-900">
-            {{ studentData.regNumber }}
+            {{ studentData?.regNumber }}
           </p>
         </div>
 
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700">Gender</label>
           <p class="mt-1 text-md font-bold text-gray-900">
-            {{ studentData.gender }}
+            {{ studentData?.gender }}
           </p>
         </div>
 
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700">Option</label>
           <p class="mt-1 text-md font-bold text-gray-900">
-            {{ studentData.option }}
+            {{ studentData?.option }}
           </p>
         </div>
 
@@ -99,7 +106,7 @@ fetchStudent(studentReg.value);
             >Admission Set</label
           >
           <p class="mt-1 text-md font-bold text-gray-900">
-            {{ studentData.admissionSet }}
+            {{ studentData?.admissionSet }}
           </p>
         </div>
       </RenderIf>

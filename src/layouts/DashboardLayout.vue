@@ -23,9 +23,7 @@ const signout = () => {
 
     <div class="flex space-x-5">
       <component :is="SideNav" />
-      <div
-        class="w-full mt-[100px] max-h-screen min-h-screen overflow-y-scroll"
-      >
+      <div class="w-full mt-[100px] min-h-screen">
         <slot />
       </div>
     </div>

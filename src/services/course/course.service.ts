@@ -11,15 +11,15 @@ class CourseService {
 
   async updateCourse(data: UpdateCourse, id: string) {
     return await this.requestMethod.patch({
-      url: `${this.base}/:${id}`,
+      url: `${this.base}/${id}`,
       body: data,
     });
   }
   async deleteCourse(id: string) {
-    return await this.requestMethod.delete(id);
+    return await this.requestMethod.delete(`${this.base}/${id}`);
   }
   async findCourse(id: string) {
-    return await this.requestMethod.get({ url: `${this.base}/:${id}` });
+    return await this.requestMethod.get({ url: `${this.base}/${id}` });
   }
   async findManyCourses(query: string) {
     return await this.requestMethod.get({

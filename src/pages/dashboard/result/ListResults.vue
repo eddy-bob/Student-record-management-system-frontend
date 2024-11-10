@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, onUnmounted, watch } from "vue";
+import { reactive, ref, useTemplateRef, watch } from "vue";
 import { useResultStore } from "@/stores/result.store";
 import { useCourseStore } from "@/stores/course.store";
 import { Level, Options, Semester } from "@/type";
@@ -8,20 +8,23 @@ import { useRouter } from "vue-router";
 import RenderIf from "@/components/shared/RenderIf.vue";
 import EmptyState from "@/components/shared/EmptyState.vue";
 import Spinner from "@/components/shared/Spinner.vue";
+import downloadCSV from "@/utils/downloadCSV";
 
 const router = useRouter();
 const resultStore = useResultStore();
 const courseStore = useCourseStore();
 
 const editedValue = ref("");
+const isCsvDownloading = ref(false);
 const isSearchStart = ref(false);
 
-const searchQuery = reactive<{
+const searchQuery = ref<{
   semester?: Semester;
   level?: Level;
   option?: Options;
   courseCode?: string;
   regNumber?: string;
+  session?: string;
 }>({});
 
 let currentlyEditedOperator = ref<{ field: string; index: number }>({
@@ -34,6 +37,7 @@ interface Result {
   courseCode: string;
   option: Options;
   unit: string;
+  session: string;
   level: Level;
   semester: Semester;
   student: {
@@ -42,6 +46,7 @@ interface Result {
     middleName: string;
   };
 }
+
 interface Course {
   id: string;
 
@@ -60,6 +65,21 @@ interface Course {
 let results = reactive<Result[]>([]);
 let courses = reactive<Course[]>([]);
 
+const page = ref(1);
+const totalPages = ref<number | undefined>();
+
+const scrollDiv = useTemplateRef("scrollDiv");
+const generateYears = () => {
+  const currentYear = new Date().getFullYear();
+  const startYear = 1981;
+  const yearsArray = [];
+
+  for (let year = startYear; year < currentYear + 1; year++) {
+    yearsArray.push(`${year}/${year + 1}`);
+  }
+  return yearsArray;
+};
+
 // methods
 const editField = <K extends keyof Result>(index: number, field: K) => {
   currentlyEditedOperator.value = { index, field };
@@ -73,19 +93,41 @@ const saveItem = <K extends keyof Result>(index: number, field: K) => {
     currentlyEditedOperator.value = { index: -1, field: "" };
   }
 };
-const fetchResults = async () => {
+const fetchResults = async (limit?: number) => {
   let queryString = "";
-  if (!!searchQuery.option) {
-    queryString + `&option=${searchQuery.option}`;
+  if (searchQuery.value.option) {
+    queryString += `&option=${searchQuery.value.option}`;
   }
-  if (!!searchQuery.level) {
-    queryString + `&level=${searchQuery.level}`;
+  if (searchQuery.value.session) {
+    queryString += `&session=${searchQuery.value.session}`;
   }
-  if (!!searchQuery.semester) {
-    queryString + `&semester=${searchQuery.semester}`;
+  if (searchQuery.value.level) {
+    queryString += `&level=${searchQuery.value.level}`;
   }
-  const coursesData = await resultStore.fetchResults(queryString);
-  results = [...coursesData.items];
+  if (searchQuery.value.semester) {
+    queryString += `&semester=${searchQuery.value.semester}`;
+  }
+  if (limit) {
+    queryString += `&limit=${limit}`;
+  }
+  const resultsData = await resultStore.fetchResults(queryString);
+  const sortedResults = await Promise.all(
+    resultsData.items.map(async (data: any) => {
+      return {
+        title: data.course.title,
+        courseCode: data.course.courseCode,
+        option: data.course.option,
+        session: data.session,
+        unit: data.course.unit,
+        level: data.course.level,
+        semester: data.course.semester,
+        id: data.id,
+        student: { ...data.student },
+      };
+    })
+  );
+  results.splice(0, results.length, ...sortedResults);
+  return resultsData;
 };
 
 const updateResult = async (id: string, data: any) => {
@@ -94,28 +136,55 @@ const updateResult = async (id: string, data: any) => {
 
 const fetchCourses = async (query: string) => {
   const data = await courseStore.fetchCourses(query);
-  courses = [...data.data];
+  if (data.items) {
+    courses.splice(0, courses.length, ...data.items);
+
+    if (scrollDiv.value) {
+      scrollDiv.value.scrollTop = 20;
+    }
+  }
 };
-
-onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
+const years = ref(generateYears());
 
 const handleScroll = () => {
-  if (
-    window.innerHeight + window.scrollY >= document.body.offsetHeight - 1 &&
-    results[0]
-  ) {
-    fetchResults();
+  if (scrollDiv.value) {
+    const scrollTop = scrollDiv.value?.scrollTop;
+
+    if (
+      scrollTop + scrollDiv.value?.clientHeight >=
+        scrollDiv.value?.scrollHeight &&
+      results[0]
+    ) {
+      if (totalPages && page.value !== totalPages.value) {
+        page.value += 1;
+        fetchResults();
+      }
+    }
+    if (scrollTop === 0 && results[0]) {
+      if (page.value !== 1) {
+        page.value -= 1;
+        fetchResults();
+      }
+    }
   }
+};
+const download = async () => {
+  if (courses.length < 1) return;
+  isCsvDownloading.value = true;
+  const singleFetch = totalPages.value ? totalPages.value * 20 : 1 * 20;
+  const data = await fetchResults(singleFetch);
+  if (data?.items) {
+    downloadCSV(data.items, "results");
+  }
+  isCsvDownloading.value = false;
 };
 
 watch(
-  () => [searchQuery.level, searchQuery.option, searchQuery.semester],
+  () => [
+    searchQuery.value.level,
+    searchQuery.value.option,
+    searchQuery.value.semester,
+  ],
   ([newLevel, newOption, newSemester]) => {
     let query = "";
     if (newLevel) {
@@ -136,7 +205,14 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div
+    ref="scrollDiv"
+    @scroll="handleScroll"
+    class="max-h-screen overflow-y-scroll"
+  >
+    <div>
+      <i class="fa fa-arrow-left cursor-pointer" @click="router.go(-1)"></i>
+    </div>
     <RenderIf :condition="!isSearchStart">
       <div class="flex items-center justify-center h-[50vh]">
         <div class="bg-white flex p-3 gap-3">
@@ -162,11 +238,54 @@ watch(
                 />
               </svg>
               <select
+                v-model="searchQuery.session"
+                id="level"
+                class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
+              >
+                <option :value="null" selected>Sort by admission year</option>
+                <option v-for="year in years" :key="year" :value="year">
+                  {{ year }}
+                </option>
+              </select>
+              <svg
+                class="absolute top-1/2 -translate-y-1/2 right-4 z-20"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12.0002 5.99845L8.00008 9.99862L3.99756 5.99609"
+                  stroke="#111827"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <div class="relative w-full max-w-sm">
+              <svg
+                class="absolute top-1/2 -translate-y-1/2 left-4 z-20"
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M16.5555 3.33203H3.44463C2.46273 3.33203 1.66675 4.12802 1.66675 5.10991C1.66675 5.56785 1.84345 6.00813 2.16004 6.33901L6.83697 11.2271C6.97021 11.3664 7.03684 11.436 7.0974 11.5068C7.57207 12.062 7.85127 12.7576 7.89207 13.4869C7.89728 13.5799 7.89728 13.6763 7.89728 13.869V16.251C7.89728 17.6854 9.30176 18.6988 10.663 18.2466C11.5227 17.961 12.1029 17.157 12.1029 16.251V14.2772C12.1029 13.6825 12.1029 13.3852 12.1523 13.1015C12.2323 12.6415 12.4081 12.2035 12.6683 11.8158C12.8287 11.5767 13.0342 11.3619 13.4454 10.9322L17.8401 6.33901C18.1567 6.00813 18.3334 5.56785 18.3334 5.10991C18.3334 4.12802 17.5374 3.33203 16.5555 3.33203Z"
+                  stroke="black"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <select
                 v-model="searchQuery.level"
                 id="level"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
-                <option disabled>Sort by level</option>
+                <option :value="null" selected>Sort by level</option>
                 <option v-for="level in Level" :key="level" :value="level">
                   {{ level }}
                 </option>
@@ -213,7 +332,7 @@ watch(
                 id="semester"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
-                <option disabled>Sort by semester</option>
+                <option :value="null" selected>Sort by semester</option>
                 <option
                   v-for="semester in Semester"
                   :key="semester"
@@ -264,7 +383,7 @@ watch(
                 id="option"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
-                <option disabled>Sort by option</option>
+                <option :value="null" selected>Sort by option</option>
                 <option
                   v-for="option in Object.values(Options).splice(1, 4)"
                   :key="option"
@@ -315,7 +434,7 @@ watch(
                 id="course-code"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
-                <option disabled>Sort by course code</option>
+                <option :value="null" selected>Sort by course code</option>
                 <RenderIf :condition="courseStore.isLoading">
                   <Spinner />
                 </RenderIf>
@@ -358,7 +477,7 @@ watch(
             <Button
               :onclick="
                 () => {
-                  fetchResults, (isSearchStart = true);
+                  fetchResults(), (isSearchStart = true);
                 }
               "
               :loading="resultStore.isLoading"
@@ -371,9 +490,16 @@ watch(
     </RenderIf>
     <RenderIf :condition="isSearchStart">
       <div class="relative overflow-x-auto sm:rounded-lg">
-        <div class="p-6 flex justify-end">
+        <div class="flex justify-end mb-3 gap-2">
           <Button
-            title="Add Course"
+            title="Download CSV"
+            class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white"
+            type="button"
+            :loading="isCsvDownloading"
+            :onClick="() => download()"
+          />
+          <Button
+            title="Add Result"
             class="text-sm"
             type="button"
             :onClick="() => router.push('/upload-results')"
@@ -393,6 +519,7 @@ watch(
               <th scope="col" class="px-6 py-3">Unit</th>
               <th scope="col" class="px-6 py-3">Level</th>
               <th scope="col" class="px-6 py-3">Semester</th>
+              <th scope="col" class="px-6 py-3">Session</th>
               <th scope="col" class="px-6 py-3">Student</th>
             </tr>
           </thead>
@@ -424,7 +551,7 @@ watch(
               >
                 <th
                   scope="row"
-                  class="px-6 py-4 cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                  class="px-6 py-4 max-w-60 overflow-x-auto cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white"
                 >
                   <RenderIf
                     :condition="
@@ -587,7 +714,9 @@ watch(
                     ></i>
                   </RenderIf>
                 </td>
-                <td class="px-6 py-4 cursor-pointer font-medium text-gray-900">
+                <td
+                  class="px-6 py-4 max-w-60 overflow-x-auto cursor-pointer font-medium text-gray-900"
+                >
                   <RenderIf
                     :condition="
                       currentlyEditedOperator.index == i &&
@@ -625,7 +754,46 @@ watch(
                     ></i>
                   </RenderIf>
                 </td>
+                <td
+                  class="px-6 py-4 max-w-60 overflow-x-auto cursor-pointer font-medium text-gray-900"
+                >
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index == i &&
+                      currentlyEditedOperator.field === 'semester'
+                    "
+                  >
+                    <select
+                      v-model="editedValue"
+                      @blur="saveItem(i, 'semester')"
+                      @keyup.enter="saveItem(i, 'semester')"
+                      id="edit-semester"
+                      class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
+                    >
+                      <option selected :value="null">Sort by semester</option>
+                      <option
+                        v-for="semester in Semester"
+                        :key="semester"
+                        :value="semester"
+                      >
+                        {{ semester }}
+                      </option>
+                    </select>
+                  </RenderIf>
 
+                  <RenderIf
+                    :condition="
+                      currentlyEditedOperator.index !== i ||
+                      currentlyEditedOperator.field !== 'session'
+                    "
+                  >
+                    {{ data.session }}
+                    <i
+                      class="fa-solid fa-pencil"
+                      @click="editField(i, 'session')"
+                    ></i>
+                  </RenderIf>
+                </td>
                 <td class="px-6 py-4">
                   {{ data.student.firstName }} {{ data.student.lastName }}
                 </td>

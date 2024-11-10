@@ -3,8 +3,10 @@ import { ref } from "vue";
 import RenderIf from "@/components/shared/RenderIf.vue";
 import { useOperatorStore } from "@/stores/operator.store";
 import Button from "@/components/buttons/Button.vue";
+import { useRouter } from "vue-router";
 
 const operatorStore = useOperatorStore();
+const router = useRouter();
 const data = ref({
   firstName: operatorStore.operatorProfile.firstName,
   lastName: operatorStore.operatorProfile.lastName,
@@ -23,6 +25,9 @@ const updateProfile = async () => {
 
 <template>
   <div>
+    <div>
+      <i class="fa fa-arrow-left cursor-pointer" @click="router.go(-1)"></i>
+    </div>
     <form @submit.prevent="updateProfile">
       <div>
         <div class="border-b border-gray-900/10 pb-12">

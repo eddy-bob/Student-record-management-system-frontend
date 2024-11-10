@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, onUnmounted } from "vue";
-
+import { reactive, ref, useTemplateRef } from "vue";
+import Spinner from "@/components/shared/Spinner.vue";
 import { Card } from "@/components";
 import { Gender, Options } from "@/type";
 import { Button } from "@/components";
@@ -8,12 +8,15 @@ import { useRouter } from "vue-router";
 import RenderIf from "@/components/shared/RenderIf.vue";
 import { useStudentStore } from "@/stores/student.store";
 import EmptyState from "@/components/shared/EmptyState.vue";
+import downloadCSV from "@/utils/downloadCSV";
 
 const router = useRouter();
 const studentStore = useStudentStore();
 
 const editedValue = ref("");
-const query = reactive({ session: "", option: "" });
+const isCsvDownloading = ref(false);
+
+const query = ref({ session: "", option: "" });
 const studentRegNumber = ref("");
 let currentlyEditedOperator = ref<{ field: string; index: number }>({
   field: "",
@@ -26,77 +29,14 @@ interface Student {
   middleName: string;
   option: Options;
   gender: Gender;
-  session: string;
+  admissionSet: string;
   regNumber: string;
 }
 let students = reactive<Student[]>([]);
-// let students = reactive<Student[]>([
-//   {
-//     id: "1",
-//     name: "Charlse Akwuoha",
-//     option: Options.ELECTRONICS,
-//     gender: Gender.MALE,
-//     session: "2019/2020",
-//     regNumber: "imsu/2019/1503",
-//   },
-//   {
-//     id: "2",
-//     name: "Charlse Akwuoha",
-//     option: Options.ELECTRONICS,
-//     gender: Gender.MALE,
-//     session: "2019/2020",
-//     regNumber: "imsu/2019/1503",
-//   },
-//   {
-//     id: "2",
-//     name: "Charlse Akwuoha",
-//     option: Options.ELECTRONICS,
-//     session: "2019/2020",
-//     gender: Gender.MALE,
-//     regNumber: "imsu/2019/1503",
-//   },
-//   {
-//     id: "3",
-//     name: "Charlse Akwuoha",
-//     option: Options.ELECTRONICS,
-//     gender: Gender.MALE,
-//     session: "2019/2020",
-//     regNumber: "imsu/2019/1503",
-//   },
-//   {
-//     id: "4",
-//     name: "Charlse Akwuoha",
-//     option: Options.ELECTRONICS,
-//     gender: Gender.MALE,
-//     session: "2019/2020",
-//     regNumber: "imsu/2019/1503",
-//   },
-//   {
-//     id: "5",
-//     name: "Charlse Akwuoha",
-//     option: Options.ELECTRONICS,
-//     gender: Gender.MALE,
-//     session: "2019/2020",
-//     regNumber: "imsu/2019/1503",
-//   },
-//   {
-//     id: "6",
-//     name: "Charlse Akwuoha",
-//     option: Options.ELECTRONICS,
-//     gender: Gender.MALE,
-//     session: "2019/2020",
-//     regNumber: "imsu/2019/1503",
-//   },
-//   {
-//     id: "7",
-//     name: "Charlse Akwuoha",
-//     option: Options.ELECTRONICS,
-//     gender: Gender.MALE,
-//     session: "2019/2020",
-//     regNumber: "imsu/2019/1503",
-//   },
-// ]);
+const page = ref(1);
+const totalPages = ref<number | undefined>();
 
+const scrollDiv = useTemplateRef("scrollDiv");
 const studentType = ref<"Single" | "Multiple">();
 // methods
 const generateYears = () => {
@@ -120,44 +60,76 @@ const saveItem = <K extends keyof Student>(index: number, field: K) => {
     updateStudent(students[index].id, { [field]: editedValue.value });
   }
 };
-const fetchStudents = async () => {
+const fetchStudents = async (limit?: number) => {
   let queryString = "";
-  if (query.option !== "") {
-    queryString + `&option=${query.option}`;
+  if (query.value.option !== "") {
+    queryString += `&option=${query.value.option}`;
   }
-  if (query.session !== "") {
-    queryString + `&admissionSet=${query.session}`;
+  if (query.value.session !== "") {
+    queryString += `&admissionSet=${query.value.session}`;
   }
-  const studentsData = await studentStore.fetchStudent(queryString);
-  students = [...studentsData.items];
+  if (limit) {
+    queryString += `&limit=${limit}`;
+  }
+  const studentsData = await studentStore.fetchStudents(queryString);
+  if (studentsData?.items) {
+    students.splice(0, students.length, ...studentsData.items);
+
+    return studentsData;
+  }
+  return [];
 };
 const updateStudent = async (id: string, data: any) => {
   await studentStore.updateStudent(data, id);
 };
 const years = ref(generateYears());
 
-onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
-
 const handleScroll = () => {
-  if (
-    window.innerHeight + window.scrollY >= document.body.offsetHeight - 1 &&
-    students[0]
-  ) {
-    fetchStudents();
+  if (scrollDiv.value) {
+    const scrollTop = scrollDiv.value?.scrollTop;
+
+    if (
+      scrollTop + scrollDiv.value?.clientHeight >=
+        scrollDiv.value?.scrollHeight &&
+      students[0]
+    ) {
+      if (totalPages && page.value !== totalPages.value) {
+        page.value += 1;
+        fetchStudents();
+      }
+    }
+    if (scrollTop === 0 && students[0]) {
+      if (page.value !== 1) {
+        page.value -= 1;
+        fetchStudents();
+      }
+    }
   }
 };
+const download = async () => {
+  if (students.length < 1) return;
+  isCsvDownloading.value = true;
+  const singleFetch = totalPages.value ? totalPages.value * 20 : 1 * 20;
+  const data = await fetchStudents(singleFetch);
+  if (data?.items) {
+    downloadCSV(data.items, "students");
+  }
+  isCsvDownloading.value = false;
+};
+
 // fetch students on created
 fetchStudents();
 </script>
 
 <template>
-  <div>
+  <div
+    ref="scrollDiv"
+    @scroll="handleScroll"
+    class="max-h-screen overflow-y-scroll"
+  >
+    <div>
+      <i class="fa fa-arrow-left cursor-pointer" @click="router.go(-1)"></i>
+    </div>
     <!-- cards -->
     <RenderIf :condition="!!studentType == false">
       <div class="flex justify-center w-full space-x-2 mt-20">
@@ -184,14 +156,14 @@ fetchStudents();
             type="text"
             v-model="studentRegNumber"
             required
-            placeholder=" reg/mat number eg IMSU/2019/1430"
+            placeholder="Capitalize all letters eg IMSU/2019/1430"
             class="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <Button
             :onclick="
               () =>
                 studentRegNumber &&
-                router.push(`/student-profile/'${studentRegNumber}'`)
+                router.push(`/student-profile/${studentRegNumber}`)
             "
             title="Search"
             class="ml-2 bg-indigo-700 text-white rounded-lg px-4 py-2 hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -201,7 +173,14 @@ fetchStudents();
     </RenderIf>
     <RenderIf :condition="!!studentType && studentType == 'Multiple'">
       <div class="relative overflow-x-auto sm:rounded-lg">
-        <div class="p-6 flex justify-end">
+        <div class="p-6 flex gap-2 justify-end">
+          <Button
+            title="Download CSV"
+            class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white"
+            type="button"
+            :loading="isCsvDownloading"
+            :onClick="() => download()"
+          />
           <Button
             title="Register new student"
             class="text-sm"
@@ -232,7 +211,7 @@ fetchStudents();
                   />
                 </svg>
                 <select
-                  @change="fetchStudents"
+                  @change="() => fetchStudents()"
                   v-model="query.session"
                   id="session"
                   class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
@@ -276,7 +255,7 @@ fetchStudents();
                   />
                 </svg>
                 <select
-                  @change="fetchStudents"
+                  @change="() => fetchStudents()"
                   v-model="query.option"
                   id="option"
                   class="h-12 border border-gray-3 text-sm text-gray-900 pl-11 font-medium leading-7 rounded-xl block w-full py-2.5 px-2 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
@@ -542,12 +521,12 @@ fetchStudents();
                   >
                     <select
                       v-model="editedValue"
-                      @blur="saveItem(i, 'session')"
-                      @keyup.enter="saveItem(i, 'session')"
+                      @blur="saveItem(i, 'admissionSet')"
+                      @keyup.enter="saveItem(i, 'admissionSet')"
                       id="edit-session"
                       class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
                     >
-                      <option selected>Sort by session</option>
+                      <option selected>Sort by admission set</option>
                       <option v-for="year in years" :key="year" :value="year">
                         {{ year }}
                       </option>
@@ -557,13 +536,13 @@ fetchStudents();
                   <RenderIf
                     :condition="
                       currentlyEditedOperator.index !== i ||
-                      currentlyEditedOperator.field !== 'session'
+                      currentlyEditedOperator.field !== 'admissionSet'
                     "
                   >
-                    {{ data.session }}
+                    {{ data.admissionSet }}
                     <i
                       class="fa-solid fa-pencil"
-                      @click="editField(i, 'session')"
+                      @click="editField(i, 'admissionSet')"
                     ></i>
                   </RenderIf>
                 </td>

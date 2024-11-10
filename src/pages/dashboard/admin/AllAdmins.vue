@@ -70,8 +70,13 @@ fetchAdmins();
 </script>
 
 <template>
-  <div class="relative overflow-x-auto sm:rounded-lg">
-    <div class="p-6 flex justify-end">
+  <div
+    class="relative overflow-x-auto sm:rounded-lg overflow-y-scroll max-h-screen"
+  >
+    <div class="p-6 flex justify-between">
+      <div>
+        <i class="fa fa-arrow-left cursor-pointer" @click="router.go(-1)"></i>
+      </div>
       <Button
         title="Create New Admin"
         class="text-sm"

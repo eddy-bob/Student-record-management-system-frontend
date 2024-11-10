@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, onUnmounted, watch } from "vue";
+import { reactive, ref, useTemplateRef, watch } from "vue";
 import { useResultStore } from "@/stores/result.store";
 import { useCourseStore } from "@/stores/course.store";
 import { useStudentStore } from "@/stores/student.store";
@@ -8,10 +8,12 @@ import { Button } from "@/components";
 import RenderIf from "@/components/shared/RenderIf.vue";
 import EmptyState from "@/components/shared/EmptyState.vue";
 import Spinner from "@/components/shared/Spinner.vue";
+import { useRouter } from "vue-router";
 
 const resultStore = useResultStore();
 const courseStore = useCourseStore();
 const studentStore = useStudentStore();
+const router = useRouter();
 
 const isSearchStart = ref(false);
 
@@ -162,7 +164,10 @@ let results = reactive<Result[]>([
   },
 ]);
 let courses = reactive<Course[]>([]);
+const page = ref(1);
+const totalPages = ref<number | undefined>();
 
+const scrollDiv = useTemplateRef("scrollDiv");
 // methods
 const generateYears = () => {
   const currentYear = new Date().getFullYear();
@@ -177,35 +182,41 @@ const generateYears = () => {
 
 const fetchCourses = async (query: string) => {
   const data = await courseStore.fetchCourses(query);
-  courses = [...data.data];
+  if (data?.items) {
+    courses.splice(0, courses.length, ...data.items);
+    if (scrollDiv.value) {
+      scrollDiv.value.scrollTop = 20;
+    }
+  }
 };
 const fetchStudents = async () => {
   let queryString = "";
-  if (!!searchQuery.option) {
-    queryString + `&option=${searchQuery.option}`;
+  if (searchQuery.option) {
+    queryString += `&option=${searchQuery.option}`;
   }
-  if (!!searchQuery.level) {
-    queryString + `&level=${searchQuery.level}`;
-  }
-  if (!!searchQuery.session) {
-    queryString + `&session=${searchQuery.session}`;
+
+  if (searchQuery.session) {
+    queryString += `&session=${searchQuery.session}`;
   }
 
   const data = await studentStore.fetchStudents(queryString);
-  const sortedData = data.data.map((student: any) => {
-    return {
-      score: "",
-      regNumber: student.regNumber,
-      grade: "",
-      course: searchQuery.courseCode,
-      session: searchQuery.session,
-      student: student.id,
-      firstName: student.firstName,
-      lastName: student.lastName,
-      middleName: student.middleName,
-    };
-  });
-  results = [...sortedData];
+
+  if (data?.items) {
+    const sortedData = data.items.map((student: any) => {
+      return {
+        score: "",
+        regNumber: student.regNumber,
+        grade: "",
+        course: searchQuery.courseCode,
+        session: searchQuery.session,
+        student: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        middleName: student.middleName,
+      };
+    });
+    results.splice(0, results.length, ...sortedData);
+  }
 };
 
 const calculateGrade = (index: number) => {
@@ -244,20 +255,26 @@ const calculateGrade = (index: number) => {
 };
 const years = ref(generateYears());
 
-onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
-
 const handleScroll = () => {
-  if (
-    window.innerHeight + window.scrollY >= document.body.offsetHeight - 1 &&
-    results[0]
-  ) {
-    fetchStudents();
+  if (scrollDiv.value) {
+    const scrollTop = scrollDiv.value?.scrollTop;
+
+    if (
+      scrollTop + scrollDiv.value?.clientHeight >=
+        scrollDiv.value?.scrollHeight &&
+      results[0]
+    ) {
+      if (totalPages && page.value !== totalPages.value) {
+        page.value += 1;
+        fetchStudents();
+      }
+    }
+    if (scrollTop === 0 && courses[0]) {
+      if (page.value !== 1) {
+        page.value -= 1;
+        fetchStudents();
+      }
+    }
   }
 };
 const uploadResults = async () => {
@@ -286,7 +303,14 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div
+    ref="scrollDiv"
+    @scroll="handleScroll"
+    class="max-h-screen m-h-screen overflow-y-scroll"
+  >
+    <div>
+      <i class="fa fa-arrow-left cursor-pointer" @click="router.go(-1)"></i>
+    </div>
     <RenderIf :condition="!isSearchStart">
       <p class="text-lg font-medium">Select result details</p>
 
@@ -296,6 +320,7 @@ watch(
             <div class="flex gap-3 w-full max-w-sm">
               <span class="text-md font-medium">Level</span>:<select
                 v-model="searchQuery.level"
+                required
                 id="level"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
@@ -327,6 +352,7 @@ watch(
               <span class="text-md font-medium">Session</span>:<select
                 v-model="searchQuery.session"
                 id="level"
+                required
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
                 <option disabled>Session</option>
@@ -362,6 +388,7 @@ watch(
             <div class="relative gap-3 flex w-full max-w-sm">
               <span class="text-md font-medium">Semester</span>:
               <select
+                required
                 v-model="searchQuery.semester"
                 id="semester"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
@@ -403,7 +430,7 @@ watch(
                 id="option"
                 class="h-12 border border-gray-3 font-medium text-sm text-gray-900 pl-11 leading-7 rounded-xl block w-full px-1 appearance-none relative focus:outline-none bg-white transition-all duration-500 hover:border-gray-400 hover:bg-gray-50 focus-within:bg-gray-50"
               >
-                <option disabled>option</option>
+                <option :value="null">option</option>
                 <option
                   v-for="option in Object.values(Options).splice(1, 4)"
                   :key="option"
@@ -411,6 +438,7 @@ watch(
                 >
                   {{ option }}
                 </option>
+                :value="null"
               </select>
               <svg
                 class="absolute top-1/2 -translate-y-1/2 right-4 z-20"

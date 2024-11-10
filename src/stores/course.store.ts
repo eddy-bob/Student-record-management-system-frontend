@@ -7,22 +7,14 @@ import { AddCourse, UpdateCourse } from "@/services/course/course.type";
 
 export const useCourseStore = defineStore("course", () => {
   const isLoading = ref(false);
-  const page = ref(0);
-  const totalPage = ref(0);
 
-  const fetchCourses = async (query: string) => {
+  const fetchCourses = async (query: string, pageNumber = 1) => {
     try {
       if (!isLoading.value) {
         isLoading.value = true;
-
-        if (page.value == totalPage.value && totalPage.value !== 0) {
-          return;
-        }
-        page.value += 1;
-        const queryString = `page=${page.value}${query}`;
-        const students = await courseService.findManyCourses(queryString);
-        totalPage.value = students.totalPage;
-        return students;
+        const queryString = `page=${pageNumber}${query}`;
+        const courses = await courseService.findManyCourses(queryString);
+        return courses;
       }
     } catch (error: any) {
       notify({
@@ -105,6 +97,7 @@ export const useCourseStore = defineStore("course", () => {
         return course;
       }
     } catch (error: any) {
+      console.log(error);
       notify({
         type: "error",
         title: "Delete Error",
@@ -152,6 +145,5 @@ export const useCourseStore = defineStore("course", () => {
     addCourse,
     fetchCourses,
     findCourse,
-    page,
   };
 });

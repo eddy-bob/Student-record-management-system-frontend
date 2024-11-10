@@ -7,22 +7,15 @@ import { AddResult, UpdateResult } from "@/services/result/result.type";
 
 export const useResultStore = defineStore("result", () => {
   const isLoading = ref(false);
-  const page = ref(0);
-  const totalPage = ref(0);
 
-  const fetchResults = async (query: string) => {
+  const fetchResults = async (query: string, pageNumber = 1) => {
     try {
       if (!isLoading.value) {
         isLoading.value = true;
 
-        if (page.value == totalPage.value && totalPage.value !== 0) {
-          return;
-        }
-        page.value += 1;
-        const queryString = `page=${page.value}${query}`;
-        const students = await resultService.findManyResults(queryString);
-        totalPage.value = students.totalPage;
-        return students;
+        const queryString = `page=${pageNumber}${query}`;
+        const results = await resultService.findManyResults(queryString);
+        return results;
       }
     } catch (error: any) {
       notify({
@@ -88,5 +81,5 @@ export const useResultStore = defineStore("result", () => {
     }
   };
 
-  return { isLoading, uploadResult, fetchResults, updateResult, page };
+  return { isLoading, uploadResult, fetchResults, updateResult };
 });
