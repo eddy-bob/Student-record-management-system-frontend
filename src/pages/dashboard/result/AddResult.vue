@@ -51,9 +51,7 @@ interface Course {
 
   unit: string;
 }
-let results = reactive<Result[]>([
- 
-]);
+let results = reactive<Result[]>([]);
 let courses = reactive<Course[]>([]);
 const page = ref(1);
 const totalPages = ref<number | undefined>();
@@ -87,7 +85,7 @@ const fetchStudents = async () => {
   }
 
   if (searchQuery.session) {
-    queryString += `&session=${searchQuery.session}`;
+    queryString += `&admissionSet=${searchQuery.session}`;
   }
 
   const data = await studentStore.fetchStudents(queryString);
