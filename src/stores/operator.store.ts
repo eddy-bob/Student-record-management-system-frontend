@@ -6,7 +6,7 @@ import {
   UpdateOperatorAsSuperAdmin,
 } from "@/services/operator/operator.type";
 import { defineStore } from "pinia";
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import operatorService from "@/services/operator/operator.service";
 import { useRoute, useRouter } from "vue-router";
 import { saveLocalStorage } from "@/helpers/localStorage";
@@ -30,6 +30,7 @@ export const useOperatorStore = defineStore("operator", () => {
     try {
       isLoading.value = true;
       const signinData = await operatorService.signin(data);
+      console.log(signinData);
       isAuthenticated.value = true;
       operatorProfile.value.email = signinData.data.user.email;
       operatorProfile.value.firstName = signinData.data.user.firstName;

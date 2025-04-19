@@ -22,7 +22,7 @@ class StudentService {
   }
   async findManyStudents(query: string) {
     return await this.requestMethod.get({
-      url: `${this.base}/all?${query}`,
+      url: `${this.base}?${query}`,
     });
   }
 }

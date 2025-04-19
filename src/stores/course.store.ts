@@ -60,8 +60,6 @@ export const useCourseStore = defineStore("course", () => {
   const updateCourse = async (data: UpdateCourse, id: string) => {
     try {
       if (!isLoading.value) {
-        isLoading.value = true;
-
         const course = await courseService.updateCourse(data, id);
         notify({
           type: "success",
@@ -79,8 +77,6 @@ export const useCourseStore = defineStore("course", () => {
       throw new Error(
         error.response?.data?.message || "Could not update course"
       );
-    } finally {
-      isLoading.value = false;
     }
   };
   const deleteCourse = async (id: string) => {

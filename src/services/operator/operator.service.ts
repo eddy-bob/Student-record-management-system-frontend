@@ -10,7 +10,8 @@ class OperatorService {
   base: string = "/operator";
   constructor(private readonly requestMethod: typeof request) {}
   async signin(body: Signin) {
-    return await this.requestMethod.post({ body, url: "/auth/signin" });
+    const d = await this.requestMethod.post({ body, url: "/auth/signin" });
+    return d;
   }
   async createOperator(data: AddOperator) {
     return await this.requestMethod.post({ url: this.base, body: data });

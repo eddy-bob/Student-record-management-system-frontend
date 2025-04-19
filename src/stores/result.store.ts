@@ -33,7 +33,6 @@ export const useResultStore = defineStore("result", () => {
   const updateResult = async (data: UpdateResult, id: string) => {
     try {
       if (!isLoading.value) {
-        isLoading.value = true;
         const students = await resultService.updateResult(data, id);
         notify({
           type: "success",
@@ -51,8 +50,6 @@ export const useResultStore = defineStore("result", () => {
       throw new Error(
         error.response?.data?.message || " could not update results"
       );
-    } finally {
-      isLoading.value = false;
     }
   };
   const deleteResult = async (id: string) => {
