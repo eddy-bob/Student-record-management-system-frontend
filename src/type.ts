@@ -4,7 +4,7 @@ export enum Options {
   TELECOM = "Telecomunication",
   ELECTRONICS = "Electronics",
 
-  GENERAL = "General",
+  GENERAL = "Not Applicable",
 }
 export enum Semester {
   FIRST = "First Semester",
